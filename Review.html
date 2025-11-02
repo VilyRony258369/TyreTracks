@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Reviews</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+            min-height: 100vh;
+            padding: 60px 20px;
+            color: #fff;
+        }
+
+        .reviews-section {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 60px;
+            animation: fadeInDown 0.8s ease;
+        }
+
+        .section-title {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+            letter-spacing: -0.5px;
+        }
+
+        .section-subtitle {
+            font-size: 1.1rem;
+            color: #a0a0a0;
+            font-weight: 300;
+        }
+
+        .review-form-container {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 40px;
+            margin-bottom: 60px;
+            animation: fadeInUp 0.8s ease;
+        }
+
+        .form-title {
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+            color: #fff;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 10px;
+            color: #b0b0b0;
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-input,
+        .form-textarea {
+            width: 100%;
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .form-input:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .rating-input {
+            display: flex;
+            gap: 10px;
+            font-size: 2rem;
+        }
+
+        .star {
+            cursor: pointer;
+            color: #444;
+            transition: all 0.2s ease;
+        }
+
+        .star:hover,
+        .star.active {
+            color: #ffd700;
+            transform: scale(1.1);
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .reviews-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            animation: fadeIn 1s ease;
+        }
+
+        .review-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .review-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .review-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(102, 126, 234, 0.3);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .review-card:hover::before {
+            opacity: 1;
+        }
+
+        .review-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: #fff;
+        }
+
+        .review-author {
+            flex: 1;
+        }
+
+        .author-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+
+        .review-rating {
+            color: #ffd700;
+            font-size: 1rem;
+        }
+
+        .review-text {
+            color: #d0d0d0;
+            line-height: 1.7;
+            font-size: 0.95rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .review-date {
+            margin-top: 15px;
+            color: #666;
+            font-size: 0.85rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .reviews-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .review-form-container {
+                padding: 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="reviews-section">
+        <div class="section-header">
+            <h2 class="section-title">Rider Reviews</h2>
+            <p class="section-subtitle">Join thousands of satisfied riders sharing their experiences</p>
+        </div>
+
+        <div class="review-form-container">
+            <h3 class="form-title">Share Your Experience</h3>
+            <form id="reviewForm">
+                <div class="form-group">
+                    <label class="form-label">Your Name</label>
+                    <input type="text" class="form-input" id="nameInput" placeholder="Enter your name" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Rating</label>
+                    <div class="rating-input" id="ratingInput">
+                        <span class="star" data-rating="1">★</span>
+                        <span class="star" data-rating="2">★</span>
+                        <span class="star" data-rating="3">★</span>
+                        <span class="star" data-rating="4">★</span>
+                        <span class="star" data-rating="5">★</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Your Review</label>
+                    <textarea class="form-textarea" id="reviewInput" placeholder="Tell us about your experience..." required></textarea>
+                </div>
+
+                <button type="submit" class="submit-btn">Submit Review</button>
+            </form>
+        </div>
+
+        <div class="reviews-grid" id="reviewsGrid">
+            <div class="review-card">
+                <div class="review-header">
+                    <div class="avatar">RK</div>
+                    <div class="review-author">
+                        <div class="author-name">Rahul Kumar</div>
+                        <div class="review-rating">★★★★★</div>
+                    </div>
+                </div>
+                <p class="review-text">The AI recommendation feature is incredible! It suggested the perfect bike for my mountain trail, and the GPS tracking made me feel safe throughout.</p>
+                <div class="review-date">2 weeks ago</div>
+            </div>
+
+            <div class="review-card">
+                <div class="review-header">
+                    <div class="avatar">PS</div>
+                    <div class="review-author">
+                        <div class="author-name">Priya Sharma</div>
+                        <div class="review-rating">★★★★★</div>
+                    </div>
+                </div>
+                <p class="review-text">Best rental experience ever! The pricing is transparent, bikes are well-maintained, and the 24/7 support is exceptional. Highly recommended!</p>
+                <div class="review-date">1 month ago</div>
+            </div>
+
+            <div class="review-card">
+                <div class="review-header">
+                    <div class="avatar">AM</div>
+                    <div class="review-author">
+                        <div class="author-name">Amit Mehta</div>
+                        <div class="review-rating">★★★★★</div>
+                    </div>
+                </div>
+                <p class="review-text">Love the carbon offset program! Knowing that my daily commute is helping plant trees makes every ride more meaningful. Great initiative!</p>
+                <div class="review-date">3 weeks ago</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedRating = 0;
+        const stars = document.querySelectorAll('.star');
+        const reviewForm = document.getElementById('reviewForm');
+        const reviewsGrid = document.getElementById('reviewsGrid');
+
+        stars.forEach(star => {
+            star.addEventListener('click', () => {
+                selectedRating = parseInt(star.dataset.rating);
+                updateStars();
+            });
+
+            star.addEventListener('mouseenter', () => {
+                const rating = parseInt(star.dataset.rating);
+                stars.forEach((s, index) => {
+                    if (index < rating) {
+                        s.style.color = '#ffd700';
+                    } else {
+                        s.style.color = '#444';
+                    }
+                });
+            });
+        });
+
+        document.querySelector('.rating-input').addEventListener('mouseleave', () => {
+            updateStars();
+        });
+
+        function updateStars() {
+            stars.forEach((star, index) => {
+                if (index < selectedRating) {
+                    star.classList.add('active');
+                } else {
+                    star.classList.remove('active');
+                }
+            });
+        }
+
+        reviewForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const name = document.getElementById('nameInput').value;
+            const reviewText = document.getElementById('reviewInput').value;
+
+            if (selectedRating === 0) {
+                alert('Please select a rating');
+                return;
+            }
+
+            const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+            const ratingStars = '★'.repeat(selectedRating) + '☆'.repeat(5 - selectedRating);
+
+            const reviewCard = document.createElement('div');
+            reviewCard.className = 'review-card';
+            reviewCard.style.animation = 'fadeInUp 0.5s ease';
+            reviewCard.innerHTML = `
+                <div class="review-header">
+                    <div class="avatar">${initials}</div>
+                    <div class="review-author">
+                        <div class="author-name">${name}</div>
+                        <div class="review-rating">${ratingStars}</div>
+                    </div>
+                </div>
+                <p class="review-text">${reviewText}</p>
+                <div class="review-date">Just now</div>
+            `;
+
+            reviewsGrid.insertBefore(reviewCard, reviewsGrid.firstChild);
+
+            reviewForm.reset();
+            selectedRating = 0;
+            updateStars();
+        });
+    </script>
+</body>
+</html>

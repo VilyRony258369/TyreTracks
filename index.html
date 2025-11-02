@@ -1,893 +1,1995 @@
-<script type="text/javascript">
-        var gk_isXlsx = false;
-        var gk_xlsxFileLookup = {};
-        var gk_fileData = {};
-        function filledCell(cell) {
-          return cell !== '' && cell != null;
-        }
-        function loadFileData(filename) {
-        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
-            try {
-                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
-                var firstSheetName = workbook.SheetNames[0];
-                var worksheet = workbook.Sheets[firstSheetName];
-
-                // Convert sheet to JSON to filter blank rows
-                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-                // Filter out blank rows (rows where all cells are empty, null, or undefined)
-                var filteredData = jsonData.filter(row => row.some(filledCell));
-
-                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
-                var headerRowIndex = filteredData.findIndex((row, index) =>
-                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
-                );
-                // Fallback
-                if (headerRowIndex === -1 || headerRowIndex > 25) {
-                  headerRowIndex = 0;
-                }
-
-                // Convert filtered JSON back to CSV
-                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
-                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
-                return csv;
-            } catch (e) {
-                console.error(e);
-                return "";
-            }
-        }
-        return gk_fileData[filename] || "";
-        }
-        </script><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="description" content="TyreTracks - Cycle rental and sales service with flexible pricing and provider opportunities.">
-    <meta name="keywords" content="cycle rental, bike sales, become a provider, TyreTracks">
-    <meta name="author" content="TyreTracks Team">
-    <meta name="theme-color" content="#1e3a8a">
+    <meta name="description" content="TyreTracks - Premium cycle rental and sales with AI recommendations and real-time tracking.">
     <title>TyreTracks - Premium Cycle Rental & Sales</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="css/output.css"> <!-- Link to generated Tailwind CSS -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #1e3a8a; /* Deep Navy */
-            --secondary-color: #64748b; /* Slate Gray */
-            --accent-color: #d4a017; /* Gold */
-            --background-color: #ffffff;
-            --surface-color: #f9fafb; /* Light Gray */
-            --text-color: #1f2937; /* Dark Gray */
-            --header-text-color: #ffffff;
-            --font-family-primary: 'Roboto', sans-serif;
-            --font-family-secondary: 'Open Sans', sans-serif;
-            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.1);
-            --shadow-lg: 0 8px 20px rgba(0, 0, 0, 0.15);
+            --primary: #1e40af;
+            --secondary: #64748b;
+            --accent: #f59e0b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --bg: #ffffff;
+            --surface: #f8fafc;
+            --text: #1e293b;
+            --border: #e2e8f0;
         }
 
         [data-theme="dark"] {
-            --primary-color: #d4a017; /* Gold */
-            --secondary-color: #1e3a8a; /* Deep Navy */
-            --accent-color: #64748b; /* Slate Gray */
-            --background-color: #121212;
-            --surface-color: #1e1e1e;
-            --text-color: #f0f0f0;
-            --header-text-color: #1f2937;
+            --primary: #3b82f6;
+            --accent: #fbbf24;
+            --bg: #0f172a;
+            --surface: #1e293b;
+            --text: #f1f5f9;
+            --border: #334155;
         }
 
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: var(--font-family-secondary);
-            margin: 0;
-            padding: 0;
-            color: var(--text-color);
-            background-color: var(--background-color);
-            transition: background-color 0.3s, color 0.3s;
-            line-height: 1.7;
-            font-size: 16px;
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            transition: all 0.3s ease;
+            overflow-x: hidden;
         }
 
         /* Preloader */
         .preloader {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #1a1a1a;
+            inset: 0;
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             z-index: 9999;
         }
-
-        .PRE-text {
-            font-style: italic;
-            color: #fff;
-            font-size: 48px;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 5px;
-            font-family: 'Courier New', monospace;
-            position: relative;
+        .loader-text {
+            font-size: 3rem;
+            font-weight: 700;
+            color: white;
+            letter-spacing: 3px;
+            margin-bottom: 2rem;
+        }
+        .loader-bar {
+            width: 300px;
+            height: 4px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
             overflow: hidden;
         }
-
-        .PRE-text::after {
-            content: '|';
-            position: absolute;
-            right: -10px;
-            animation: blink 0.7s step-end infinite;
+        .loader-progress {
+            height: 100%;
+            background: var(--accent);
+            width: 0%;
+            animation: loading 2s ease-out forwards;
         }
-
-        @keyframes blink {
-            0% { opacity: 1; }
-            50% { opacity: 0; }
-            100% { opacity: 1; }
+        @keyframes loading {
+            to { width: 100%; }
         }
-
         .fade-out {
-            animation: fadeOut 1s ease-in-out forwards;
+            animation: fadeOut 0.5s forwards;
         }
-
         @keyframes fadeOut {
-            0% { opacity: 1; }
-            100% { opacity: 0; visibility: hidden; }
-        }
-
-        /* Hide main content initially */
-        .main-content {
-            display: none;
+            to { opacity: 0; visibility: hidden; }
         }
 
         /* Header */
         header {
-            background-color: var(--primary-color);
-            color: var(--header-text-color);
-            padding: 0.5rem 0;
+            background: var(--bg);
+            backdrop-filter: blur(10px);
             position: sticky;
             top: 0;
             z-index: 1000;
-            box-shadow: var(--shadow-md);
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            border-bottom: 1px solid var(--border);
         }
-
         .header-container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
+            padding: 1rem 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0 1rem;
         }
-
         .logo {
-            font-size: 1.5rem;
+            font-size: 1.8rem;
             font-weight: 700;
-            color: var(--accent-color);
-            font-family: var(--font-family-primary);
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            cursor: pointer;
         }
-
-        .nav-menu { 
-            display: flex; 
-            gap: 1rem; 
+        .nav-menu {
+            display: flex;
+            gap: 2rem;
             align-items: center;
         }
         .nav-item a {
-            color: var(--header-text-color);
+            color: var(--text);
             text-decoration: none;
-            padding: 0.5rem;
-            transition: color 0.3s ease;
-            font-weight: 600;
-            font-size: 0.9rem;
+            font-weight: 500;
+            transition: color 0.3s;
             position: relative;
+        }
+        .nav-item a:hover {
+            color: var(--primary);
         }
         .nav-item a::after {
             content: '';
             position: absolute;
+            bottom: -5px;
+            left: 0;
             width: 0;
             height: 2px;
-            bottom: 0;
-            left: 50%;
-            background-color: var(--accent-color);
-            transition: all 0.3s ease-out;
+            background: var(--accent);
+            transition: width 0.3s;
         }
-        .nav-item a:hover::after { 
-            width: 100%; 
-            left: 0; 
+        .nav-item a:hover::after {
+            width: 100%;
         }
-        .nav-toggle { 
-            display: none; 
-            font-size: 1.5rem; 
-            cursor: pointer; 
-            background: none; 
-            border: none; 
-            color: var(--header-text-color); 
+        .nav-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
         }
-
-        /* Hero Section */
-        .hero { 
-            position: relative; 
-            height: 50vh;
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            text-align: center; 
-            color: white; 
-            overflow: hidden; 
+        .theme-toggle {
+            background: var(--surface);
+            border: none;
+            padding: 0.6rem;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .hero::before { 
-            content: ''; 
-            position: absolute; 
-            inset: 0; 
-            background: rgba(0, 0, 0, 0.5); 
-            z-index: 1; 
+        .theme-toggle:hover {
+            transform: rotate(180deg);
+            background: var(--primary);
+            color: white;
         }
-        .slide { 
-            position: absolute; 
-            width: 100%; 
-            height: 100%; 
-            opacity: 0; 
-            transition: opacity 1s ease-in-out; 
-            z-index: 0; 
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), #3b82f6);
+            color: white;
+            padding: 0.7rem 1.5rem;
+            border: none;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(30,64,175,0.3);
         }
-        .slide img { 
-            width: 100%; 
-            height: 100%; 
-            object-fit: cover; 
-            object-position: center;
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(30,64,175,0.4);
         }
-        .slide.active { 
-            opacity: 1; 
-        }
-        .hero-content { 
-            position: relative; 
-            z-index: 2; 
-            padding: 1rem; 
-            max-width: 90%;
-            animation: fadeIn 1.5s ease-out; 
-        }
-        .hero-content h1 { 
-            font-size: 2rem;
-            margin-bottom: 0.5rem; 
-            font-weight: 700; 
-            font-family: var(--font-family-primary); 
-        }
-        .hero-content p { 
-            font-size: 1rem; 
-            margin-bottom: 1rem; 
+        .nav-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text);
+            cursor: pointer;
         }
 
-        /* Buttons & Toggles */
-        .btn { 
-            background-color: var(--accent-color); 
-            color: var(--background-color); 
-            padding: 0.6rem 1.2rem;
-            border: none; 
-            border-radius: 5px; 
-            cursor: pointer; 
-            transition: transform 0.3s ease, box-shadow 0.3s ease; 
-            font-weight: 600; 
-            font-size: 0.9rem; 
-            text-transform: uppercase; 
-            touch-action: manipulation;
+        /* Hero */
+        .hero {
+            position: relative;
+            height: 600px;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%);
         }
-        .btn:hover { 
-            transform: translateY(-3px); 
-            box-shadow: var(--shadow-lg); 
+        .hero-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            z-index: 2;
+            color: white;
         }
-        .theme-toggle { 
-            background: none; 
-            border: 1px solid var(--accent-color); 
-            color: var(--accent-color); 
-            padding: 0.4rem 0.8rem; 
-            border-radius: 5px; 
-            cursor: pointer; 
-            transition: background-color 0.3s, color 0.3s; 
-            font-size: 0.9rem; 
+        .hero-content h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            animation: slideInLeft 0.8s ease-out;
         }
-        .theme-toggle:hover { 
-            background-color: var(--accent-color); 
-            color: var(--header-text-color); 
+        .hero-content p {
+            font-size: 1.3rem;
+            margin-bottom: 2rem;
+            opacity: 0.95;
+            animation: slideInLeft 1s ease-out;
         }
-
-        /* Sections */
-        .section { 
-            max-width: 1200px; 
-            margin: 2rem auto;
-            padding: 1rem; 
+        .hero-stats {
+            display: flex;
+            gap: 3rem;
+            margin-top: 2rem;
+            animation: slideInUp 1.2s ease-out;
         }
-        .section h2 { 
-            color: var(--primary-color); 
-            font-size: 1.8rem;
-            margin-bottom: 1rem; 
-            text-align: center; 
-            font-family: var(--font-family-primary); 
+        .stat-item {
+            text-align: center;
         }
-
-        /* Cards */
-        .grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1rem; 
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            display: block;
         }
-        .card { 
-            background-color: var(--surface-color); 
-            border-radius: 10px; 
-            box-shadow: var(--shadow-md); 
-            padding: 1rem; 
-            text-align: center; 
-            transition: transform 0.3s ease, box-shadow 0.3s ease; 
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
         }
-        .card:hover { 
-            transform: translateY(-5px); 
-            box-shadow: var(--shadow-lg); 
+        @keyframes slideInLeft {
+            from { opacity: 0; transform: translateX(-50px); }
+            to { opacity: 1; transform: translateX(0); }
         }
-        .card img { 
-            max-width: 100%; 
-            height: 120px;
-            object-fit: cover; 
-            margin-bottom: 1rem; 
-        }
-
-        /* Forms & Interactive Elements */
-        .calculator, .dashboard-preview, .contact-form, .contact-details { 
-            background-color: var(--surface-color); 
-            border-radius: 10px; 
-            box-shadow: var(--shadow-md); 
-            padding: 1rem; 
-            max-width: 90%;
-            margin: 1rem auto; 
-        }
-        input, select, textarea { 
-            width: 100%; 
-            padding: 0.5rem; 
-            margin-bottom: 0.75rem; 
-            border: 1px solid #ccc; 
-            border-radius: 4px; 
-            background-color: var(--background-color); 
-            color: var(--text-color); 
-            font-size: 0.9rem; 
-        }
-        input:focus, select:focus, textarea:focus { 
-            border-color: var(--accent-color); 
-            outline: none; 
-            box-shadow: 0 0 5px rgba(212, 160, 23, 0.5); 
-        }
-        label { 
-            display: block; 
-            margin-bottom: 0.3rem; 
-            font-weight: 600; 
-            font-size: 0.9rem; 
-        }
-
-        /* Contact Section */
-        .contact-grid { 
-            display: grid; 
-            grid-template-columns: 1fr;
-            gap: 1rem; 
-            align-items: start; 
-        }
-
-        /* Footer */
-        footer { 
-            background-color: var(--primary-color); 
-            color: var(--header-text-color); 
-            text-align: center; 
-            padding: 2rem 1rem; 
-            margin-top: 2rem; 
-        }
-        .footer-container { 
-            max-width: 1200px; 
-            margin: 0 auto 1rem; 
-            display: flex; 
-            justify-content: space-around; 
-            flex-wrap: wrap; 
-            gap: 1rem; 
-            text-align: left; 
-        }
-        .footer-section h4 { 
-            font-size: 1rem; 
-            margin-bottom: 0.5rem; 
-            color: var(--accent-color); 
-        }
-        .footer-section a { 
-            color: var(--header-text-color); 
-            text-decoration: none; 
-            display: block; 
-            margin-bottom: 0.3rem; 
-            font-size: 0.9rem; 
-            transition: color 0.3s; 
-        }
-        .footer-section a:hover { 
-            color: var(--accent-color); 
-        }
-
-        /* Chat Widget */
-        .chat-toggle { 
-            position: fixed; 
-            bottom: 1rem; 
-            right: 1rem; 
-            background-color: var(--accent-color); 
-            color: var(--background-color); 
-            border: none; 
-            width: 50px; 
-            height: 50px; 
-            border-radius: 50%; 
-            cursor: pointer; 
-            font-size: 1.5rem; 
-            box-shadow: var(--shadow-lg); 
-            z-index: 1001; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-        }
-        .chat-widget { 
-            display: none; 
-            position: fixed; 
-            bottom: 4.5rem; 
-            right: 1rem; 
-            width: 85%;
-            max-width: 300px; 
-            background-color: var(--surface-color); 
-            border-radius: 8px; 
-            box-shadow: var(--shadow-lg); 
-            z-index: 1000; 
-            overflow: hidden; 
-        }
-        .chat-widget h3 { 
-            background-color: var(--primary-color); 
-            color: var(--header-text-color); 
-            margin: 0; 
-            padding: 0.75rem; 
-            font-size: 1rem; 
-        }
-        .chat-widget .content { 
-            padding: 0.75rem; 
-        }
-
-        /* Animation */
-        @keyframes fadeIn { 
-            from { opacity: 0; transform: translateY(20px); } 
-            to { opacity: 1; transform: translateY(0); } 
-        }
-
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .nav-toggle { 
-                display: block; 
-            }
-            .nav-menu { 
-                display: none; 
-                flex-direction: column; 
-                position: absolute; 
-                top: 100%; 
-                left: 0; 
-                width: 100%; 
-                background-color: var(--primary-color); 
-                padding: 0.5rem; 
-                box-shadow: var(--shadow-md); 
-            }
-            .nav-menu.active { 
-                display: flex; 
-            }
-            .nav-item a { 
-                padding: 0.75rem; 
-                font-size: 1rem; 
-            }
-            .hero-content h1 { 
-                font-size: 1.8rem; 
-            }
-            .hero-content p { 
-                font-size: 0.9rem; 
-            }
-            .theme-toggle { 
-                position: absolute; 
-                top: 0.5rem; 
-                right: 3.5rem; 
-                padding: 0.3rem 0.6rem; 
-                font-size: 0.8rem; 
-            }
-            .section { 
-                margin: 1.5rem auto; 
-                padding: 0.75rem; 
-            }
-            .section h2 { 
-                font-size: 1.5rem; 
-            }
-            .card img { 
-                height: 100px; 
-            }
-            .btn { 
-                padding: 0.5rem 1rem; 
-                font-size: 0.8rem; 
-            }
-        }
-
-        @media (max-width: 576px) {
-            body { 
-                font-size: 14px;
-            }
-            .header-container { 
-                padding: 0 0.5rem; 
-            }
-            .logo { 
-                font-size: 1.3rem; 
-            }
-            .nav-toggle { 
-                font-size: 1.3rem; 
-            }
-            .hero { 
-                height: 40vh;
-            }
-            .hero-content h1 { 
-                font-size: 1.5rem; 
-            }
-            .hero-content p { 
-                font-size: 0.8rem; 
-            }
-            .grid { 
-                grid-template-columns: 1fr;
-            }
-            .card { 
-                padding: 0.75rem; 
-            }
-            .card img { 
-                height: 80px; 
-            }
-            .section h2 { 
-                font-size: 1.3rem; 
-            }
-            .calculator, .dashboard-preview, .contact-form, .contact-details { 
-                padding: 0.75rem; 
-            }
-            input, select, textarea { 
-                font-size: 0.8rem; 
-                padding: 0.4rem; 
-            }
-            label { 
-                font-size: 0.8rem; 
-            }
-            .footer-container { 
-                flex-direction: column; 
-                text-align: center; 
-            }
-            .footer-section { 
-                margin-bottom: 1rem; 
-            }
-            .chat-toggle { 
-                width: 40px; 
-                height: 40px; 
-                font-size: 1.2rem; 
-            }
-            .chat-widget { 
-                width: 90%; 
-                max-width: 280px; 
-            }
-            .chat-widget h3 { 
-                font-size: 0.9rem; 
-            }
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-20px); }
+        @keyframes slideInUp {
+            from { opacity: 0; transform: translateY(30px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        .animate-fade-in {
-            animation: fadeIn 0.6s ease-out;
+
+        /* Features Section */
+        .features {
+            padding: 5rem 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
         }
-        .shadow-neumorphic {
-            box-shadow: 8px 8px 16px rgba(0, 0, 0, 0.1), -8px -8px 16px rgba(255, 255, 255, 0.9);
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: var(--accent);
+            border-radius: 10px;
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+        .feature-card {
+            background: var(--surface);
+            padding: 2rem;
+            border-radius: 20px;
+            text-align: center;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        .feature-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--primary);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        .feature-card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+
+        /* Smart Rental Calculator */
+        .calculator-section {
+            padding: 5rem 2rem;
+            background: var(--surface);
+        }
+        .calculator {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--bg);
+            padding: 3rem;
+            border-radius: 25px;
+            box-shadow: 0 10px 50px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 2rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.8rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        input[type="range"] {
+            flex: 1;
+            height: 6px;
+            border-radius: 10px;
+            background: var(--border);
+            outline: none;
         }
         input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
-            appearance: none;
             width: 20px;
             height: 20px;
-            background: #3b82f6;
             border-radius: 50%;
+            background: var(--primary);
             cursor: pointer;
-            box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
         }
-        input[type="range"]::-moz-range-thumb {
-            width: 20px;
-            height: 20px;
-            background: #3b82f6;
+        .slider-value {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary);
+            min-width: 80px;
+            text-align: right;
+        }
+        select {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        select:focus {
+            border-color: var(--primary);
+            outline: none;
+        }
+        .cost-display {
+            background: linear-gradient(135deg, var(--primary), #3b82f6);
+            color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+            margin: 2rem 0;
+        }
+        .cost-amount {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        .ai-recommendation {
+            background: rgba(16,185,129,0.1);
+            border-left: 4px solid var(--success);
+            padding: 1rem;
+            border-radius: 10px;
+            margin-top: 1rem;
+        }
+
+        /* Bike Gallery */
+        .bike-gallery {
+            padding: 5rem 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .bike-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+        .bike-card {
+            background: var(--surface);
+            border-radius: 20px;
+            overflow: hidden;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .bike-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 50px rgba(0,0,0,0.15);
+        }
+        .bike-image {
+            width: 100%;
+            height: 220px;
+            background: linear-gradient(135deg, #e0e7ff, #dbeafe);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+        }
+        .bike-info {
+            padding: 1.5rem;
+        }
+        .bike-card h3 {
+            font-size: 1.4rem;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+        }
+        .bike-price {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin: 1rem 0;
+        }
+        .bike-features {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin: 1rem 0;
+        }
+        .badge {
+            background: var(--primary);
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* Live Tracking */
+        .tracking-section {
+            padding: 5rem 2rem;
+            background: var(--surface);
+        }
+        .tracking-demo {
+            max-width: 900px;
+            margin: 0 auto;
+            background: var(--bg);
+            padding: 2rem;
+            border-radius: 25px;
+            box-shadow: 0 10px 50px rgba(0,0,0,0.1);
+        }
+        .map-placeholder {
+            width: 100%;
+            height: 400px;
+            background: linear-gradient(135deg, #e0e7ff, #dbeafe);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .tracking-pulse {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: var(--success);
             border-radius: 50%;
-            cursor: pointer;
-            box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+            animation: pulse 2s infinite;
         }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(2); opacity: 0.5; }
+        }
+        .tracking-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+        .tracking-stat {
+            text-align: center;
+            padding: 1rem;
+            background: var(--surface);
+            border-radius: 12px;
+        }
+
+        /* Testimonials */
+        .testimonials {
+            padding: 5rem 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .testimonial-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+        .testimonial-card {
+            background: var(--surface);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+        }
+        .testimonial-text {
+            font-style: italic;
+            margin-bottom: 1.5rem;
+            line-height: 1.8;
+        }
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .author-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+        .rating {
+            color: var(--accent);
+            font-size: 1.2rem;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--primary);
+            color: white;
+            padding: 3rem 2rem 1rem;
+        }
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        .footer-section h4 {
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+        .footer-section a {
+            display: block;
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            margin-bottom: 0.5rem;
+            transition: color 0.3s;
+        }
+        .footer-section a:hover {
+            color: var(--accent);
+        }
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .social-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .social-icon:hover {
+            background: var(--accent);
+            transform: translateY(-3px);
+        }
+
+        /* Chat Widget */
+        .chat-widget {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 1000;
+        }
+        .chat-button {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), #3b82f6);
+            color: white;
+            border: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            box-shadow: 0 5px 25px rgba(30,64,175,0.4);
+            transition: all 0.3s;
+        }
+        .chat-button:hover {
+            transform: scale(1.1);
+        }
+        .chat-box {
+            display: none;
+            position: absolute;
+            bottom: 80px;
+            right: 0;
+            width: 350px;
+            background: var(--bg);
+            border-radius: 20px;
+            box-shadow: 0 10px 50px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        .chat-box.active {
+            display: block;
+            animation: slideInUp 0.3s;
+        }
+        .chat-header {
+            background: linear-gradient(135deg, var(--primary), #3b82f6);
+            color: white;
+            padding: 1rem;
+            font-weight: 600;
+        }
+        .chat-messages {
+            height: 300px;
+            padding: 1rem;
+            overflow-y: auto;
+        }
+        .chat-input-area {
+            padding: 1rem;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 0.5rem;
+        }
+        .chat-input {
+            flex: 1;
+            padding: 0.8rem;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            outline: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-menu {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: var(--bg);
+                flex-direction: column;
+                padding: 2rem;
+                box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            }
+            .nav-menu.active {
+                display: flex;
+            }
+            .nav-toggle {
+                display: block;
+            }
+            .hero-content h1 {
+                font-size: 2rem;
+            }
+            .hero-stats {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            .calculator {
+                padding: 2rem 1rem;
+            }
+            .chat-box {
+                width: 300px;
+            }
+        }
+
+        .main-content {
+            display: none;
+        }
+        .hero {
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            color: white;
+        }
+
+        /* Background slideshow container */
+        .slideshow-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* Gradient overlay for better text readability */
+        .slideshow-background::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(30, 27, 75, 0.75) 50%, rgba(15, 23, 42, 0.85) 100%);
+            z-index: 2;
+        }
+
+        /* Animated grid overlay for futuristic feel */
+        .grid-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(99, 102, 241, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(99, 102, 241, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: 3;
+            animation: gridMove 20s linear infinite;
+        }
+
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 2s ease-in-out;
+            background-size: cover;
+            background-position: center;
+            filter: blur(4px);
+            transform: scale(1.1);
+        }
+
+        .slide.active {
+            opacity: 1;
+        }
+
+        /* Hero content */
+        .hero-content {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            padding: 2rem;
+            max-width: 1400px;
+            width: 100%;
+        }
+
+        .hero-content h1 {
+            font-size: clamp(2.5rem, 8vw, 5rem);
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, #ffffff 0%, #a5b4fc 50%, #ffffff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.02em;
+            animation: fadeInUp 1s ease;
+            line-height: 1.1;
+        }
+
+        .hero-content p {
+            font-size: clamp(1rem, 2vw, 1.4rem);
+            margin-bottom: 3rem;
+            line-height: 1.7;
+            color: rgba(255, 255, 255, 0.9);
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            font-weight: 400;
+            animation: fadeInUp 1s ease 0.2s both;
+        }
+
+        .btn-primary {
+            position: relative;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            border: none;
+            font-size: 1.1rem;
+            padding: 1.2rem 3rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            font-weight: 600;
+            box-shadow: 0 20px 40px rgba(99, 102, 241, 0.3);
+            animation: fadeInUp 1s ease 0.4s both;
+            overflow: hidden;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn-primary:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 25px 50px rgba(99, 102, 241, 0.5);
+        }
+
+        .btn-primary:active {
+            transform: translateY(-1px);
+        }
+
+        .hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 4rem;
+            margin-top: 4rem;
+            flex-wrap: wrap;
+            animation: fadeInUp 1s ease 0.6s both;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1.5rem 2rem;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            transition: all 0.4s ease;
+            min-width: 180px;
+        }
+
+        .stat-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-5px);
+            border-color: rgba(99, 102, 241, 0.5);
+            box-shadow: 0 20px 40px rgba(99, 102, 241, 0.2);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #6366f1 0%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .stat-label {
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+
+        /* Slideshow controls */
+        .slideshow-controls {
+            position: absolute;
+            bottom: 3rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 0.8rem;
+            z-index: 10;
+            animation: fadeInUp 1s ease 0.8s both;
+        }
+
+        .slide-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .slide-dot.active {
+            background: #6366f1;
+            border-color: #6366f1;
+            transform: scale(1.3);
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.8);
+        }
+
+        .slide-dot:hover {
+            background: rgba(255, 255, 255, 0.6);
+            transform: scale(1.2);
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Floating particles effect */
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 4;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(99, 102, 241, 0.6);
+            border-radius: 50%;
+            animation: float 15s infinite ease-in-out;
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.8);
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) translateX(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) translateX(50px);
+                opacity: 0;
+            }
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .hero-stats {
+                gap: 1.5rem;
+            }
+
+            .stat-item {
+                min-width: 140px;
+                padding: 1.2rem 1.5rem;
+            }
+
+            .stat-number {
+                font-size: 2rem;
+            }
+
+            .btn-primary {
+                padding: 1rem 2rem;
+                font-size: 1rem;
+            }
+
+            .slideshow-controls {
+                bottom: 2rem;
+            }
+        }
+        .reviews-section {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 60px;
+            animation: fadeInDown 0.8s ease;
+        }
+
+        .section-title {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+            letter-spacing: -0.5px;
+        }
+
+        .section-subtitle {
+            font-size: 1.1rem;
+            color: #a0a0a0;
+            font-weight: 300;
+        }
+
+        .review-form-container {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 40px;
+            margin-bottom: 60px;
+            animation: fadeInUp 0.8s ease;
+        }
+
+        .form-title {
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+            color: #fff;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 10px;
+            color: #b0b0b0;
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-input,
+        .form-textarea {
+            width: 100%;
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .form-input:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .rating-input {
+            display: flex;
+            gap: 10px;
+            font-size: 2rem;
+        }
+
+        .star {
+            cursor: pointer;
+            color: #444;
+            transition: all 0.2s ease;
+        }
+
+        .star:hover,
+        .star.active {
+            color: #ffd700;
+            transform: scale(1.1);
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .reviews-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            animation: fadeIn 1s ease;
+            min-height: 200px;
+        }
+
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 60px 20px;
+            animation: fadeIn 1s ease;
+        }
+
+        .review-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .review-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .review-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(102, 126, 234, 0.3);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .review-card:hover::before {
+            opacity: 1;
+        }
+
+        .review-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: #fff;
+        }
+
+        .review-author {
+            flex: 1;
+        }
+
+        .author-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+
+        .review-rating {
+            color: #ffd700;
+            font-size: 1rem;
+        }
+
+        .review-text {
+            color: #d0d0d0;
+            line-height: 1.7;
+            font-size: 0.95rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .review-date {
+            margin-top: 15px;
+            color: #666;
+            font-size: 0.85rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .reviews-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .review-form-container {
+                padding: 25px;
+            }
+        }
+
     </style>
 </head>
 <body>
-    <div class="preloader">
-        <div class="PRE-text" id="PRE-text"></div>
+    <!-- Preloader -->
+    <div class="preloader" id="preloader">
+        <div class="loader-text">TyreTracks</div>
+        <div class="loader-bar">
+            <div class="loader-progress"></div>
+        </div>
     </div>
-    <div class="main-content">
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <!-- Header -->
         <header>
             <div class="header-container">
-                <div class="logo" tabindex="0">TyreTracks</div>
+                <div class="logo">🚴 TyreTracks</div>
                 <nav class="nav-menu" id="navMenu">
                     <div class="nav-item"><a href="#home">Home</a></div>
                     <div class="nav-item"><a href="#rent">Rent</a></div>
                     <div class="nav-item"><a href="#buy">Buy</a></div>
-                    <div class="nav-item"><a href="#provider">Become a Provider</a></div>
-                    <div class="nav-item"><a href="#contact">Contact</a></div>
+                    <div class="nav-item"><a href="#track">Track</a></div>
+                    <div class="nav-item"><a href="Events.html">Events</a></div>
+                    <div class="nav-item"><a href="#provider">Become Provider</a></div>
                 </nav>
-                <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle Theme"><i class="bi bi-brightness-high-fill"></i></button>
-                <button class="nav-toggle" onclick="toggleNav()" aria-label="Toggle Navigation">&#9776;</button>
+                <div class="nav-actions">
+                    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">🌓</button>
+                    <button class="btn-primary">Sign In</button>
+                    <button class="nav-toggle" onclick="toggleNav()">☰</button>
+                </div>
             </div>
         </header>
 
-        <main>
-            <section id="home" class="hero">
-                <div class="slide active"><img src="header1.png" alt="A person riding a road bike on a scenic route."></div>
-                <div class="slide"><img src="code2.png" alt="A mountain biker navigating a challenging trail."></div>
-                <div class="hero-content">
-                    <h1>Your Adventure Awaits</h1>
-                    <p>Discover flexible rentals and high-quality used cycles with TyreTracks. Start your journey today!</p>
-                    <a href="#rent" class="btn">Explore Rentals</a>
-                </div>
-            </section>
-
-            <section id="rent" class="section bg-gradient-to-br from-blue-100 via-white to-green-100 py-16">
-                <div class="container mx-auto px-6">
-                    <h2 class="text-4xl font-extrabold text-center text-gray-800 mb-10 animate-fade-in">Rent Your Dream Cycle</h2>
-                    <div class="calculator max-w-lg mx-auto bg-white p-8 rounded-2xl shadow-neumorphic transition-all duration-300">
-                        <div class="mb-6">
-                            <label for="rent-time" class="block text-sm font-medium text-gray-700 mb-3">Rental Duration (hours):</label>
-                            <div class="flex items-center gap-4">
-                                <input type="range" id="rent-time" min="1" max="24" value="1" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600" aria-label="Rental duration">
-                                <span id="rent-time-value" class="text-lg font-semibold text-gray-800">1 hr</span>
-                            </div>
-                            <p id="rent-time-error" class="text-red-500 text-sm mt-2 hidden">Please select at least 1 hour.</p>
-                        </div>
-                        <div class="mb-6">
-                            <label for="cycle-type" class="block text-sm font-medium text-gray-700 mb-3">Cycle Type:</label>
-                            <div class="relative">
-                                <select id="cycle-type" aria-label="Select cycle type" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition duration-200 appearance-none bg-white">
-                                    <option value="10" data-type="road" data-image="https://via.placeholder.com/50?text=Road">Road Bike ($10/hr)</option>
-                                    <option value="12" data-type="mountain" data-image="https://via.placeholder.com/50?text=Mountain">Mountain Bike ($12/hr)</option>
-                                    <option value="8" data-type="hybrid" data-image="https://via.placeholder.com/50?text=Hybrid">Hybrid Bike ($8/hr)</option>
-                                </select>
-                                <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                                </div>
-                            </div>
-                            <div id="cycle-image" class="mt-4 flex justify-center">
-                                <img src="https://via.placeholder.com/50?text=Road" alt="Selected cycle" class="h-16 w-16 object-contain transition-opacity duration-300" aria-hidden="true">
-                            </div>
-                        </div>
-                        <p id="rent-cost" class="text-xl font-semibold text-gray-800 mb-6 text-center">Estimated Cost: $0.00</p>
-                        <div id="availability-btn-container" class="mb-6 text-center transform translate-y-4 opacity-0 transition-all duration-300" aria-live="polite">
-                            <a id="availability-link" href="/availability/road" class="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200 focus:ring-2 focus:ring-blue-500 focus:outline-none" role="button">Check Availability</a>
-                        </div>
-                        <button id="start-rental" class="w-full bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors duration-200 focus:ring-2 focus:ring-green-500 focus:outline-none" disabled>Start Rental</button>
-                    </div>
-                </div>
-            </section>
-
-            <section id="buy" class="section" style="background-color: var(--surface-color); padding: 2rem 1rem;">
-                <h2>Buy Used Cycles</h2>
-                <div class="grid">
-                    <div class="card"><img src="RoadB.webp" alt="Sleek road bike."><h3>Road Bike</h3><p>Excellent condition, lightweight frame, ideal for speed and distance. <strong>$150</strong></p><button class="btn">View Details</button></div>
-                    <div class="card"><img src="mountain.webp" alt="Sturdy mountain bike."><h3>Mountain Bike</h3><p>Great for trails and off-road adventures, durable and robust. <strong>$200</strong></p><button class="btn">View Details</button></div>
-                    <div class="card"><img src="hybrid.png" alt="Versatile hybrid bike."><h3>Hybrid Bike</h3><p>Versatile and comfortable, for city commuting and leisure rides. <strong>$175</strong></p><button class="btn">View Details</button></div>
-                </div>
-            </section>
-
-            <section id="provider" class="section">
-                <h2>Become a Rental Provider</h2>
-                <div class="dashboard-preview">
-                    <h3>Provider Dashboard Preview</h3>
-                    <p>Join our network to earn by renting out your cycles. Track earnings, manage rentals, and connect with customers seamlessly.</p>
-                    <ul style="text-align: left;">
-                        <li><strong>Earnings:</strong> $500 (Simulated)</li>
-                        <li><strong>Active Rentals:</strong> 3</li>
-                        <li><strong>Pending Applications:</strong> 1</li>
-                    </ul>
-                    <button class="btn">Apply Now</button>
-                </div>
-            </section>
-
-            <section id="contact" class="section">
-                <h2>Contact Us</h2>
-                <div class="contact-grid">
-                    <div class="contact-form">
-                        <form id="contactForm">
-                            <label for="name">Full Name</label><input type="text" id="name" placeholder="Your Name" required aria-label="Your name">
-                            <label for="email">Email Address</label><input type="email" id="email" placeholder="Your Email" required aria-label="Your email">
-                            <label for="reason">Reason for Contact</label>
-                            <select id="reason" required aria-label="Contact reason"><option value="">Select Reason</option><option value="support">Support</option><option value="partnership">Partnership</option><option value="callback">Request Callback</option></select>
-                            <label for="message">Message</label><textarea id="message" rows="4" placeholder="Your Message" required aria-label="Your message"></textarea>
-                            <button type="submit" class="btn">Send Message</button>
-                        </form>
-                    </div>
-                    <div class="contact-details">
-                        <h3>Company Information</h3>
-                        <p><strong>Address:</strong> 123 Cycle Lane, Tech City, India - 400001</p>
-                        <p><strong>Phone:</strong> +91-22-12345678</p>
-                        <p><strong>Support Hours:</strong> Mon-Fri, 9:00 AM - 6:00 PM IST</p>
-                    </div>
-                </div>
-            </section>
-        </main>
-
-        <footer>
-            <div class="footer-container">
-                <div class="footer-section"><h4>About Us</h4><a href="#">Our Story</a><a href="#">Mission</a><a href="#">Team</a></div>
-                <div class="footer-section"><h4>Services</h4><a href="#rent">Rentals</a><a href="#buy">Sales</a><a href="#provider">Provider Network</a></div>
-                <div class="footer-section"><h4>Support</h4><a href="#">FAQ</a><a href="#contact">Contact</a><a href="#">Policies</a></div>
-                <div class="footer-section"><h4>Connect</h4><a href="#">Blog</a><a href="#">News</a><a href="#">Careers</a></div>
+        <!-- Hero -->
+        <section class="hero" id="home">
+            <!-- Background Slideshow -->
+            <div class="slideshow-background">
+                <div class="slide active" style="background-image: url('https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=1920&q=80');"></div>
+                <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1571068316344-75bc76f77890?w=1920&q=80');"></div>
+                <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1920&q=80');"></div>
+                <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1532298229144-0ec0c57515c7?w=1920&q=80');"></div>
             </div>
-            <p>© 2025 TyreTracks. All rights reserved.</p>
+            
+            <!-- Grid Overlay -->
+            <div class="grid-overlay"></div>
+            
+            <!-- Floating Particles -->
+            <div class="particles" id="particles"></div>
+    
+            <!-- Hero Content -->
+            <div class="hero-content">
+                <h1>Your Journey Starts Here</h1>
+                <p>Smart bike rentals with AI-powered recommendations, real-time tracking, and flexible pricing</p>
+                <button class="btn-primary">Start Your Ride</button>
+                
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <span class="stat-number" id="bikeCount">500+</span>
+                        <span class="stat-label">Bikes Available</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="userCount">10K+</span>
+                        <span class="stat-label">Happy Riders</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">4.9★</span>
+                        <span class="stat-label">Average Rating</span>
+                    </div>
+                </div>
+            </div>
+    
+            <!-- Slideshow Controls -->
+            <div class="slideshow-controls">
+                <div class="slide-dot active" data-slide="0"></div>
+                <div class="slide-dot" data-slide="1"></div>
+                <div class="slide-dot" data-slide="2"></div>
+                <div class="slide-dot" data-slide="3"></div>
+            </div>
+        </section>
+    
+
+        <!-- Features -->
+        <section class="features">
+            <h2 class="section-title">Why Choose TyreTracks?</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🤖</div>
+                    <h3>AI Recommendations</h3>
+                    <p>Smart algorithm suggests the perfect bike based on your route, weather, and preferences</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📍</div>
+                    <h3>Live GPS Tracking</h3>
+                    <p>Track your ride in real-time with route optimization and safety alerts</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💳</div>
+                    <h3>Flexible Pricing</h3>
+                    <p>Hourly, daily, or monthly plans with dynamic pricing and loyalty rewards</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔧</div>
+                    <h3>Free Maintenance</h3>
+                    <p>24/7 roadside assistance and complimentary service for all rentals</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🌱</div>
+                    <h3>Carbon Offset</h3>
+                    <p>Every ride plants trees. Track your environmental impact in real-time</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🏆</div>
+                    <h3>Rewards Program</h3>
+                    <p>Earn points for every ride and unlock exclusive discounts and perks</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Smart Calculator -->
+        <section class="calculator-section" id="rent">
+            <div class="calculator">
+                <h2 class="section-title">Smart Rental Calculator</h2>
+                
+                <div class="form-group">
+                    <label>Rental Duration</label>
+                    <div class="slider-container">
+                        <input type="range" id="duration" min="1" max="168" value="4">
+                        <span class="slider-value" id="durationValue">4 hours</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Bike Type</label>
+                    <select id="bikeType">
+                        <option value="road">Road Bike - Premium Speed</option>
+                        <option value="mountain">Mountain Bike - Off-Road Beast</option>
+                        <option value="hybrid">Hybrid Bike - City Comfort</option>
+                        <option value="electric">E-Bike - Electric Power</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Planned Distance (km)</label>
+                    <div class="slider-container">
+                        <input type="range" id="distance" min="5" max="100" value="20">
+                        <span class="slider-value" id="distanceValue">20 km</span>
+                    </div>
+                </div>
+
+                <div class="cost-display">
+                    <div style="font-size: 1rem; opacity: 0.9;">Estimated Total Cost</div>
+                    <div class="cost-amount" id="totalCost">$32.00</div>
+                    <div style="font-size: 0.9rem; opacity: 0.8;">Includes insurance & GPS tracking</div>
+                </div>
+
+                <div class="ai-recommendation" id="aiRecommendation">
+                    <strong>🤖 AI Suggestion:</strong> <span id="aiText">Road bike is perfect for your planned distance. Add helmet (+$2) for maximum safety!</span>
+                </div>
+
+                <button class="btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem; margin-top: 1rem;">Book Now</button>
+            </div>
+        </section>
+
+        <!-- Bike Gallery -->
+        <section class="bike-gallery" id="buy">
+            <h2 class="section-title">Premium Bikes For Sale</h2>
+            <div class="bike-grid">
+                <div class="bike-card">
+                    <div class="bike-image">🚴</div>
+                    <div class="bike-info">
+                        <h3>Carbon Road Racer</h3>
+                        <p>Ultra-lightweight carbon frame, 22-speed Shimano</p>
+                        <div class="bike-features">
+                            <span class="badge">Like New</span>
+                            <span class="badge">2023</span>
+                            <span class="badge">Carbon</span>
+                        </div>
+                        <div class="bike-price"></div>
+                        <button class="btn-primary" style="width: 100%;">View Details</button>
+                    </div>
+                </div>
+                <div class="bike-card">
+                    <div class="bike-image">🚵</div>
+                    <div class="bike-info">
+                        <h3>Mountain Trail Pro</h3>
+                        <p>Full suspension, hydraulic disc brakes, all-terrain</p>
+                        <div class="bike-features">
+                            <span class="badge">Excellent</span>
+                            <span class="badge">2024</span>
+                            <span class="badge">Aluminum</span>
+                        </div>
+                        <div class="bike-price"></div>
+                        <button class="btn-primary" style="width: 100%;">View Details</button>
+                    </div>
+                </div>
+                <div class="bike-card">
+                    <div class="bike-image">⚡</div>
+                    <div class="bike-info">
+                        <h3>E-Bike City Cruiser</h3>
+                        <p>500W motor, 50km range, smart display</p>
+                        <div class="bike-features">
+                            <span class="badge">New</span>
+                            <span class="badge">2024</span>
+                            <span class="badge">Electric</span>
+                        </div>
+                        <div class="bike-price"></div>
+                        <button class="btn-primary" style="width: 100%;">View Details</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Live Tracking Demo -->
+        <section class="tracking-section" id="track">
+            <h2 class="section-title">Real-Time Ride Tracking</h2>
+            <div class="tracking-demo">
+                <div class="map-placeholder">
+                    🗺️
+                    <div class="tracking-pulse" style="top: 45%; left: 50%;"></div>
+                </div>
+                <div class="tracking-info">
+                    <div class="tracking-stat">
+                        <div style="font-size: 2rem; font-weight: 700; color: var(--primary);">12.5 km</div>
+                        <div style="color: var(--secondary); margin-top: 0.5rem;">Distance Covered</div>
+                    </div>
+                    <div class="tracking-stat">
+                        <div style="font-size: 2rem; font-weight: 700; color: var(--success);">24 km/h</div>
+                        <div style="color: var(--secondary); margin-top: 0.5rem;">Current Speed</div>
+                    </div>
+                    <div class="tracking-stat">
+                        <div style="font-size: 2rem; font-weight: 700; color: var(--accent);">45 min</div>
+                        <div style="color: var(--secondary); margin-top: 0.5rem;">Time Elapsed</div>
+                    </div>
+                    <div class="tracking-stat">
+                        <div style="font-size: 2rem; font-weight: 700; color: var(--danger);">156 bpm</div>
+                        <div style="color: var(--secondary); margin-top: 0.5rem;">Heart Rate</div>
+                    </div>
+                </div>
+                <button class="btn-primary" style="width: 100%; margin-top: 2rem; padding: 1rem;">Share My Ride</button>
+            </div>
+        </section>
+
+        <!-- Testimonials -->
+
+        <div class="reviews-section">
+            <div class="section-header">
+                <h2 class="section-title">Rider Reviews</h2>
+                <p class="section-subtitle">Join thousands of satisfied riders sharing their experiences</p>
+            </div>
+    
+            <div class="review-form-container">
+                <h3 class="form-title">Share Your Experience</h3>
+                <form id="reviewForm">
+                    <div class="form-group">
+                        <label class="form-label">Your Name</label>
+                        <input type="text" class="form-input" id="nameInput" placeholder="Enter your name" required>
+                    </div>
+    
+                    <div class="form-group">
+                        <label class="form-label">Rating</label>
+                        <div class="rating-input" id="ratingInput">
+                            <span class="star" data-rating="1">★</span>
+                            <span class="star" data-rating="2">★</span>
+                            <span class="star" data-rating="3">★</span>
+                            <span class="star" data-rating="4">★</span>
+                            <span class="star" data-rating="5">★</span>
+                        </div>
+                    </div>
+    
+                    <div class="form-group">
+                        <label class="form-label">Your Review</label>
+                        <textarea class="form-textarea" id="reviewInput" placeholder="Tell us about your experience..." required></textarea>
+                    </div>
+    
+                    <button type="submit" class="submit-btn">Submit Review</button>
+                </form>
+            </div>
+    
+            <div class="reviews-grid" id="reviewsGrid">
+                <div class="empty-state" id="emptyState">
+                    <div style="font-size: 3rem; margin-bottom: 20px; opacity: 0.3;">💬</div>
+                    <h3 style="font-size: 1.5rem; margin-bottom: 10px; color: #888;">No Reviews Yet</h3>
+                    <p style="color: #666;">Be the first to share your experience!</p>
+                </div>
+            </div>
+        </div>
+        <!-- Provider Section -->
+        <section class="features" id="provider" style="background: var(--surface);">
+            <h2 class="section-title">Become a TyreTracks Provider</h2>
+            <p style="text-align: center; max-width: 700px; margin: 0 auto 3rem; font-size: 1.1rem; color: var(--secondary);">
+                List your bikes and earn passive income. Join our network of trusted providers and grow your business.
+            </p>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">💰</div>
+                    <h3>Earn More</h3>
+                    <p>Set your own prices and earn up to $500/month per bike with our dynamic pricing tools</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Smart Dashboard</h3>
+                    <p>Track earnings, manage bookings, and monitor bike health in real-time</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🛡️</div>
+                    <h3>Insurance Coverage</h3>
+                    <p>Complete protection with $2M liability insurance and damage coverage</p>
+                </div>
+            </div>
+            <div style="text-align: center; margin-top: 3rem;">
+                <button class="btn-primary" style="font-size: 1.1rem; padding: 1rem 2.5rem;"><a href="Provider.html">Apply to Become Provider</a></button>
+            </div>
+        </section>
+
+        <!-- Newsletter -->
+        <section class="features" style="background: linear-gradient(135deg, var(--primary), #3b82f6); color: white; padding: 5rem 2rem;">
+            <div style="max-width: 800px; margin: 0 auto; text-align: center;">
+                <h2 style="color: white; font-size: 2.5rem; margin-bottom: 1rem;">Stay Updated</h2>
+                <p style="font-size: 1.2rem; margin-bottom: 2rem; opacity: 0.95;">
+                    Get exclusive offers, new bike alerts, and cycling tips delivered to your inbox
+                </p>
+                <div style="display: flex; gap: 1rem; max-width: 500px; margin: 0 auto;">
+                    <input type="email" placeholder="Enter your email" style="flex: 1; padding: 1rem; border-radius: 25px; border: none; font-size: 1rem;">
+                    <button class="btn-primary" style="background: var(--accent); padding: 1rem 2rem; white-space: nowrap;">Subscribe</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>🚴 TyreTracks</h4>
+                    <p style="opacity: 0.8; line-height: 1.6;">
+                        Making cycling accessible, sustainable, and enjoyable for everyone. Join the revolution today!
+                    </p>
+                    <div class="social-links">
+                        <div class="social-icon">📘</div>
+                        <div class="social-icon">📸</div>
+                        <div class="social-icon">🐦</div>
+                        <div class="social-icon">💼</div>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <a href="#rent">Rent a Bike</a>
+                    <a href="#buy">Buy Used Bikes</a>
+                    <a href="#track">Track Your Ride</a>
+                    <a href="#provider">Become Provider</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Support</h4>
+                    <a href="#">Help Center</a>
+                    <a href="#">Safety Guidelines</a>
+                    <a href="#">Terms & Conditions</a>
+                    <a href="#">Privacy Policy</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Contact</h4>
+                    <p style="opacity: 0.8;">📍 123 Cycle Lane, Tech City</p>
+                    <p style="opacity: 0.8;">📞 +91-22-12345678</p>
+                    <p style="opacity: 0.8;">✉️ hello@tyretracks.com</p>
+                    <p style="opacity: 0.8;">⏰ 24/7 Support Available</p>
+                </div>
+            </div>
+            <div style="text-align: center; padding-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); opacity: 0.8;">
+                © 2025 TyreTracks. All rights reserved. Made with ❤️ for cyclists
+            </div>
         </footer>
 
-        <button class="chat-toggle" onclick="toggleChat()" aria-label="Toggle Chat">💬</button>
-        <div class="chat-widget" id="chatWidget">
-            <h3>Live Support</h3>
-            <div class="content">
-                <p>Hi! How can we assist you today?</p>
-                <input type="text" placeholder="Type your message..." aria-label="Chat input">
-                <button class="btn" onclick="sendMessage()">Send</button>
+        <!-- Chat Widget -->
+        <div class="chat-widget">
+            <button class="chat-button" onclick="toggleChat()">💬</button>
+            <div class="chat-box" id="chatBox">
+                <div class="chat-header">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-size: 1.1rem;">TyreTracks Support</div>
+                            <div style="font-size: 0.8rem; opacity: 0.9;">🟢 Online - Avg response: 2 min</div>
+                        </div>
+                        <button onclick="toggleChat()" style="background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer;">×</button>
+                    </div>
+                </div>
+                <div class="chat-messages" id="chatMessages">
+                    <div style="background: var(--surface); padding: 1rem; border-radius: 15px; margin-bottom: 1rem;">
+                        <strong>Support Bot</strong><br>
+                        <span style="color: var(--secondary);">Hi! 👋 How can I help you today?</span>
+                    </div>
+                </div>
+                <div class="chat-input-area">
+                    <input type="text" class="chat-input" placeholder="Type your message..." id="chatInput" onkeypress="if(event.key==='Enter') sendMessage()">
+                    <button class="btn-primary" onclick="sendMessage()" style="padding: 0.8rem 1.2rem; border-radius: 20px;">Send</button>
+                </div>
             </div>
         </div>
     </div>
-
     <script>
-        // Preloader typewriter effect
-        const text = "TyreTracks";
-        const heroText = document.getElementById('PRE-text');
-        const preloader = document.querySelector('.preloader');
-        const mainContent = document.querySelector('.main-content');
-        let index = 0;
-
-        function typeWriter() {
-            if (index < text.length) {
-                heroText.textContent += text.charAt(index);
-                index++;
-                setTimeout(typeWriter, 300);
-            } else {
-                setTimeout(() => {
-                    preloader.classList.add('fade-out');
-                    setTimeout(() => {
-                        preloader.style.display = 'none';
-                        mainContent.style.display = 'block';
-                    }, 1000); // Matches fadeOut animation duration
-                }, 1000); // Pause after typing
-            }
-        }
-
-        // Start typewriter animation when page loads
-        window.addEventListener('load', () => {
-            setTimeout(typeWriter, 500);
-        });
-
-        // Nav toggle
-        function toggleNav() { 
-            document.getElementById('navMenu').classList.toggle('active'); 
-        }
-
-        // Theme toggle
-        function toggleTheme() {
-            const body = document.body;
-            const theme = body.getAttribute('data-theme') === 'dark' ? '' : 'dark';
-            body.setAttribute('data-theme', theme);
-            theme ? localStorage.setItem('theme', 'dark') : localStorage.removeItem('theme');
-        }
-        if (localStorage.getItem('theme') === 'dark') document.body.setAttribute('data-theme', 'dark');
-
-        // Slideshow
-        let slideIndex = 0;
+        // Slideshow functionality
+        let currentSlide = 0;
         const slides = document.querySelectorAll('.slide');
-        function showSlides() {
+        const dots = document.querySelectorAll('.slide-dot');
+        const totalSlides = slides.length;
+
+        function showSlide(index) {
             slides.forEach(slide => slide.classList.remove('active'));
-            slideIndex = (slideIndex + 1) % slides.length;
-            slides[slideIndex].classList.add('active');
-        }
-        setInterval(showSlides, 5000);
-
-        // Chat widget
-        function toggleChat() {
-            const chat = document.getElementById('chatWidget');
-            chat.style.display = chat.style.display === 'block' ? 'none' : 'block';
-        }
-        function sendMessage() { 
-            alert('Message sent! (This is a simulation)'); 
+            dots.forEach(dot => dot.classList.remove('active'));
+            
+            slides[index].classList.add('active');
+            dots[index].classList.add('active');
         }
 
-        // Rental calculator
-        const rentTimeInput = document.getElementById('rent-time');
-        const rentTimeValue = document.getElementById('rent-time-value');
-        const rentTimeError = document.getElementById('rent-time-error');
-        const cycleTypeSelect = document.getElementById('cycle-type');
-        const rentCostDisplay = document.getElementById('rent-cost');
-        const availabilityBtnContainer = document.getElementById('availability-btn-container');
-        const availabilityLink = document.getElementById('availability-link');
-        const cycleImage = document.getElementById('cycle-image').querySelector('img');
-        const startRentalButton = document.getElementById('start-rental');
-
-        function updateCost() {
-            const hours = parseInt(rentTimeInput.value) || 0;
-            const rate = parseFloat(cycleTypeSelect.value) || 0;
-            const cost = (hours * rate).toFixed(2);
-            rentCostDisplay.textContent = `Estimated Cost: $${cost}`;
-            startRentalButton.disabled = hours <= 0 || isNaN(rate);
-            rentTimeError.classList.toggle('hidden', hours > 0);
+        function nextSlide() {
+            currentSlide = (currentSlide + 1) % totalSlides;
+            showSlide(currentSlide);
         }
 
-        function updateAvailabilityLink() {
-            const selectedOption = cycleTypeSelect.options[cycleTypeSelect.selectedIndex];
-            const cycleType = selectedOption.dataset.type;
-            const imageUrl = selectedOption.dataset.image;
-            availabilityLink.href = `/availability/${cycleType}`;
-            cycleImage.src = imageUrl;
-            cycleImage.alt = `Selected ${cycleType} cycle`;
-            availabilityBtnContainer.classList.remove('translate-y-4', 'opacity-0');
-        }
+        // Auto-advance slideshow every 5 seconds
+        setInterval(nextSlide, 5000);
 
-        rentTimeInput.addEventListener('input', () => {
-            rentTimeValue.textContent = `${rentTimeInput.value} hr${rentTimeInput.value > 1 ? 's' : ''}`;
-            updateCost();
+        // Manual slide control
+        dots.forEach((dot, index) => {
+            dot.addEventListener('click', () => {
+                currentSlide = index;
+                showSlide(currentSlide);
+            });
         });
 
-        cycleTypeSelect.addEventListener('change', () => {
-            updateCost();
-            updateAvailabilityLink();
+        // Animated counter for stats
+        function animateCounter(element, target, duration = 2000) {
+            const start = 0;
+            const increment = target / (duration / 16);
+            let current = start;
+
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= target) {
+                    current = target;
+                    clearInterval(timer);
+                }
+                element.textContent = Math.floor(current) + '+';
+            }, 16);
+        }
+
+        // Trigger counters on load
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                animateCounter(document.getElementById('bikeCount'), 500);
+                animateCounter(document.getElementById('userCount'), 10000);
+            }, 500);
         });
 
-        // Initialize on page load
-        updateCost();
-        updateAvailabilityLink();
+        // Create floating particles
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 30;
 
-        // Accessibility: Allow keyboard navigation for slider
-        rentTimeInput.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowUp' || e.key === 'ArrowRight') {
-                rentTimeInput.value = Math.min(parseInt(rentTimeInput.value) + 1, 24);
-                rentTimeInput.dispatchEvent(new Event('input'));
-            } else if (e.key === 'ArrowDown' || e.key === 'ArrowLeft') {
-                rentTimeInput.value = Math.max(parseInt(rentTimeInput.value) - 1, 1);
-                rentTimeInput.dispatchEvent(new Event('input'));
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 15 + 's';
+                particle.style.animationDuration = (10 + Math.random() * 10) + 's';
+                particlesContainer.appendChild(particle);
             }
-        });
+        }
 
-        // Form validation
-        document.getElementById('contactForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const name = document.getElementById('name').value;
-            alert(`Thank you, ${name}! Your message has been sent. We will contact you soon.`);
-            e.target.reset();
+        createParticles();
+
+        // Button ripple effect
+        document.querySelector('.btn-primary').addEventListener('click', function(e) {
+            const ripple = document.createElement('span');
+            const rect = this.getBoundingClientRect();
+            const size = Math.max(rect.width, rect.height);
+            const x = e.clientX - rect.left - size / 2;
+            const y = e.clientY - rect.top - size / 2;
+
+            ripple.style.width = ripple.style.height = size + 'px';
+            ripple.style.left = x + 'px';
+            ripple.style.top = y + 'px';
+            ripple.classList.add('ripple');
+
+            this.appendChild(ripple);
+
+            setTimeout(() => ripple.remove(), 600);
         });
     </script>
-    <script type="text/javascript">
-        var gk_isXlsx = false;
-        var gk_xlsxFileLookup = {};
-        var gk_fileData = {};
-        function filledCell(cell) {
-            return cell !== '' && cell != null;
-        }
-        function loadFileData(filename) {
-            if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
-                try {
-                    var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
-                    var firstSheetName = workbook.SheetNames[0];
-                    var worksheet = workbook.Sheets[firstSheetName];
-                    var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-                    var filteredData = jsonData.filter(row => row.some(filledCell));
-                    var headerRowIndex = filteredData.findIndex((row, index) =>
-                        row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
-                    );
-                    if (headerRowIndex === -1 || headerRowIndex > 25) {
-                        headerRowIndex = 0;
+    <script>
+        let selectedRating = 0;
+        const stars = document.querySelectorAll('.star');
+        const reviewForm = document.getElementById('reviewForm');
+        const reviewsGrid = document.getElementById('reviewsGrid');
+
+        stars.forEach(star => {
+            star.addEventListener('click', () => {
+                selectedRating = parseInt(star.dataset.rating);
+                updateStars();
+            });
+
+            star.addEventListener('mouseenter', () => {
+                const rating = parseInt(star.dataset.rating);
+                stars.forEach((s, index) => {
+                    if (index < rating) {
+                        s.style.color = '#ffd700';
+                    } else {
+                        s.style.color = '#444';
                     }
-                    var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex));
-                    csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
-                    return csv;
-                } catch (e) {
-                    console.error(e);
-                    return "";
+                });
+            });
+        });
+
+        document.querySelector('.rating-input').addEventListener('mouseleave', () => {
+            updateStars();
+        });
+
+        function updateStars() {
+            stars.forEach((star, index) => {
+                if (index < selectedRating) {
+                    star.classList.add('active');
+                } else {
+                    star.classList.remove('active');
                 }
-            }
-            return gk_fileData[filename] || "";
+            });
         }
+
+        reviewForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const name = document.getElementById('nameInput').value;
+            const reviewText = document.getElementById('reviewInput').value;
+
+            if (selectedRating === 0) {
+                alert('Please select a rating');
+                return;
+            }
+
+            // Hide empty state if it exists
+            const emptyState = document.getElementById('emptyState');
+            if (emptyState) {
+                emptyState.remove();
+            }
+
+            const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+            const ratingStars = '★'.repeat(selectedRating) + '☆'.repeat(5 - selectedRating);
+
+            const reviewCard = document.createElement('div');
+            reviewCard.className = 'review-card';
+            reviewCard.style.animation = 'fadeInUp 0.5s ease';
+            reviewCard.innerHTML = `
+                <div class="review-header">
+                    <div class="avatar">${initials}</div>
+                    <div class="review-author">
+                        <div class="author-name">${name}</div>
+                        <div class="review-rating">${ratingStars}</div>
+                    </div>
+                </div>
+                <p class="review-text">${reviewText}</p>
+                <div class="review-date">Just now</div>
+            `;
+
+            reviewsGrid.insertBefore(reviewCard, reviewsGrid.firstChild);
+
+            reviewForm.reset();
+            selectedRating = 0;
+            updateStars();
+        });
+    </script>
+    <script>
+        // Preloader
+        setTimeout(() => {
+            document.getElementById('preloader').classList.add('fade-out');
+            setTimeout(() => {
+                document.getElementById('preloader').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'block';
+            }, 500);
+        }, 2500);
+
+        // Theme Toggle
+        function toggleTheme() {
+            const body = document.body;
+            const currentTheme = body.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? '' : 'dark';
+            body.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        }
+        
+        // Load saved theme
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) document.body.setAttribute('data-theme', savedTheme);
+
+        // Nav Toggle
+        function toggleNav() {
+            document.getElementById('navMenu').classList.toggle('active');
+        }
+
+        // Chat Widget
+        function toggleChat() {
+            document.getElementById('chatBox').classList.toggle('active');
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const messages = document.getElementById('chatMessages');
+            if (input.value.trim()) {
+                const userMsg = document.createElement('div');
+                userMsg.style.cssText = 'background: var(--primary); color: white; padding: 0.8rem; border-radius: 15px; margin-bottom: 1rem; margin-left: 2rem; text-align: right;';
+                userMsg.textContent = input.value;
+                messages.appendChild(userMsg);
+                input.value = '';
+                
+                // Simulate bot response
+                setTimeout(() => {
+                    const botMsg = document.createElement('div');
+                    botMsg.style.cssText = 'background: var(--surface); padding: 1rem; border-radius: 15px; margin-bottom: 1rem;';
+                    botMsg.innerHTML = '<strong>Support Bot</strong><br><span style="color: var(--secondary);">Thanks for your message! Our team will respond shortly. 🚴</span>';
+                    messages.appendChild(botMsg);
+                    messages.scrollTop = messages.scrollHeight;
+                }, 1000);
+            }
+        }
+
+        // Smart Calculator
+        const duration = document.getElementById('duration');
+        const durationValue = document.getElementById('durationValue');
+        const bikeType = document.getElementById('bikeType');
+        const distance = document.getElementById('distance');
+        const distanceValue = document.getElementById('distanceValue');
+        const totalCost = document.getElementById('totalCost');
+        const aiText = document.getElementById('aiText');
+
+        const bikeRates = {
+            road: 8,
+            mountain: 10,
+            hybrid: 6,
+            electric: 12
+        };
+
+        function updateCalculator() {
+            const hours = parseInt(duration.value);
+            const km = parseInt(distance.value);
+            const type = bikeType.value;
+            const rate = bikeRates[type];
+            
+            // Update duration display
+            if (hours < 24) {
+                durationValue.textContent = `${hours} hour${hours > 1 ? 's' : ''}`;
+            } else {
+                const days = Math.floor(hours / 24);
+                durationValue.textContent = `${days} day${days > 1 ? 's' : ''}`;
+            }
+            
+            // Update distance display
+            distanceValue.textContent = `${km} km`;
+            
+            // Calculate cost with discounts
+            let cost = hours * rate;
+            if (hours >= 24) cost *= 0.85; // 15% daily discount
+            if (hours >= 168) cost *= 0.75; // 25% weekly discount
+            
+            totalCost.textContent = `${cost.toFixed(2)}`;
+            
+            // AI Recommendations
+            let recommendation = '';
+            if (type === 'road' && km > 50) {
+                recommendation = 'Road bike is perfect for long distances! Consider adding a water bottle holder (+$3).';
+            } else if (type === 'mountain' && km < 20) {
+                recommendation = 'For shorter urban rides, a hybrid might be more comfortable and economical.';
+            } else if (type === 'electric' && hours > 8) {
+                recommendation = 'E-bike is great for extended rides! Remember to plan charging stops.';
+            } else if (km > 30) {
+                recommendation = 'For this distance, consider our premium saddle upgrade (+$5) for extra comfort!';
+            } else {
+                recommendation = `${type.charAt(0).toUpperCase() + type.slice(1)} bike is perfect for your planned ride. Add helmet (+$2) for safety!`;
+            }
+            aiText.textContent = recommendation;
+        }
+
+        duration.addEventListener('input', updateCalculator);
+        bikeType.addEventListener('change', updateCalculator);
+        distance.addEventListener('input', updateCalculator);
+        
+        // Initialize
+        updateCalculator();
+
+        // Animated counters for hero stats
+        function animateCounter(id, target) {
+            const element = document.getElementById(id);
+            const duration = 2000;
+            const steps = 60;
+            const increment = target / steps;
+            let current = 0;
+            
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= target) {
+                    element.textContent = target;
+                    clearInterval(timer);
+                } else {
+                    element.textContent = Math.floor(current) + (id === 'bikeCount' ? '+' : 'K+');
+                }
+            }, duration / steps);
+        }
+
+        // Start animations when page loads
+        setTimeout(() => {
+            animateCounter('bikeCount', 500);
+            animateCounter('userCount', 10);
+        }, 500);
+
+        // Smooth scroll for navigation
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    if (window.innerWidth <= 768) {
+                        document.getElementById('navMenu').classList.remove('active');
+                    }
+                }
+            });
+        });
+
+        // Add scroll reveal animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.feature-card, .bike-card, .testimonial-card').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(30px)';
+            el.style.transition = 'all 0.6s ease-out';
+            observer.observe(el);
+        });
     </script>
 </body>
 </html>

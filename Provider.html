@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CycleShare - List Your Bike</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #2d1b3d 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.15), transparent);
+            border-radius: 50%;
+            top: -250px;
+            right: -250px;
+            animation: float 20s infinite ease-in-out;
+        }
+
+        body::after {
+            content: '';
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.15), transparent);
+            border-radius: 50%;
+            bottom: -200px;
+            left: -200px;
+            animation: float 15s infinite ease-in-out reverse;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(50px, 50px); }
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border-radius: 30px;
+            padding: 50px;
+            max-width: 700px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            z-index: 1;
+            animation: slideIn 0.6s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            color: #fff;
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 2.5em;
+            font-weight: 700;
+            letter-spacing: -1px;
+            text-shadow: 0 0 30px rgba(99, 102, 241, 0.5);
+        }
+
+        .subtitle {
+            color: #a0a0c0;
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 1.1em;
+        }
+
+        .form-group {
+            margin-bottom: 30px;
+            animation: fadeIn 0.8s ease-out backwards;
+        }
+
+        .form-group:nth-child(2) { animation-delay: 0.1s; }
+        .form-group:nth-child(3) { animation-delay: 0.2s; }
+        .form-group:nth-child(4) { animation-delay: 0.3s; }
+        .form-group:nth-child(5) { animation-delay: 0.4s; }
+        .form-group:nth-child(6) { animation-delay: 0.5s; }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        label {
+            display: block;
+            color: #e0e0ff;
+            margin-bottom: 10px;
+            font-weight: 500;
+            font-size: 0.95em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            color: #fff;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        textarea:focus,
+        select:focus {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: #6366f1;
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+            transform: translateY(-2px);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+            font-family: inherit;
+        }
+
+        .image-upload {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.03);
+            overflow: hidden;
+        }
+
+        .image-upload:hover {
+            border-color: #6366f1;
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .image-upload input {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .upload-icon {
+            font-size: 3em;
+            color: #6366f1;
+            margin-bottom: 10px;
+        }
+
+        .upload-text {
+            color: #a0a0c0;
+            font-size: 0.95em;
+        }
+
+        .image-preview {
+            display: none;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 15px;
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .price-input-wrapper {
+            position: relative;
+        }
+
+        .currency-symbol {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6366f1;
+            font-size: 1.2em;
+            font-weight: 600;
+        }
+
+        .price-input-wrapper input {
+            padding-left: 45px;
+        }
+
+        .day-price-info {
+            margin-top: 10px;
+            padding: 15px;
+            background: rgba(99, 102, 241, 0.1);
+            border-radius: 10px;
+            border-left: 3px solid #6366f1;
+        }
+
+        .day-price-info p {
+            color: #a0a0c0;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .calculated-price {
+            color: #6366f1;
+            font-size: 1.3em;
+            font-weight: 600;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.3);
+            margin-top: 10px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(99, 102, 241, 0.5);
+        }
+
+        .submit-btn:active {
+            transform: translateY(-1px);
+        }
+
+        select {
+            cursor: pointer;
+        }
+
+        select option {
+            background: #1a1f3a;
+            color: #fff;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 30px 20px;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+
+            .pricing-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚴 CycleShare</h1>
+        <p class="subtitle">List your bike and start earning today</p>
+
+        <form id="rentalForm">
+            <div class="form-group">
+                <label for="cycleName">Cycle Name / Model</label>
+                <input type="text" id="cycleName" required placeholder="e.g., Mountain Bike X500">
+            </div>
+
+            <div class="form-group">
+                <label for="cycleType">Cycle Type</label>
+                <select id="cycleType" required>
+                    <option value="">Select Type</option>
+                    <option value="mountain">Mountain Bike</option>
+                    <option value="road">Road Bike</option>
+                    <option value="hybrid">Hybrid Bike</option>
+                    <option value="electric">Electric Bike</option>
+                    <option value="bmx">BMX</option>
+                    <option value="cruiser">Cruiser</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea id="description" required placeholder="Tell renters about your bike's condition, features, and specifications..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Cycle Image</label>
+                <div class="image-upload" id="imageUpload">
+                    <input type="file" id="cycleImage" accept="image/*" required>
+                    <div class="upload-icon">📸</div>
+                    <div class="upload-text">Click to upload cycle image</div>
+                    <img id="imagePreview" class="image-preview" alt="Preview">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Pricing</label>
+                <div class="pricing-grid">
+                    <div class="price-input-wrapper">
+                        <span class="currency-symbol">₹</span>
+                        <input type="number" id="hourlyRate" required placeholder="Per Hour" min="1" step="1">
+                    </div>
+                    <div class="price-input-wrapper">
+                        <span class="currency-symbol">₹</span>
+                        <input type="number" id="dailyRate" required placeholder="Per Day" min="1" step="1">
+                    </div>
+                </div>
+                <div class="day-price-info" id="priceInfo" style="display: none;">
+                    <p>Suggested daily rate (8 hours):</p>
+                    <span class="calculated-price" id="suggestedPrice">₹0</span>
+                </div>
+            </div>
+
+            <button type="submit" class="submit-btn">List My Cycle</button>
+        </form>
+    </div>
+
+    <script>
+        const imageInput = document.getElementById('cycleImage');
+        const imagePreview = document.getElementById('imagePreview');
+        const imageUpload = document.getElementById('imageUpload');
+        const hourlyRate = document.getElementById('hourlyRate');
+        const dailyRate = document.getElementById('dailyRate');
+        const priceInfo = document.getElementById('priceInfo');
+        const suggestedPrice = document.getElementById('suggestedPrice');
+
+        imageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imagePreview.src = e.target.result;
+                    imagePreview.style.display = 'block';
+                    imageUpload.querySelector('.upload-icon').style.display = 'none';
+                    imageUpload.querySelector('.upload-text').style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        hourlyRate.addEventListener('input', function() {
+            const hourly = parseFloat(this.value);
+            if (hourly && hourly > 0) {
+                const suggested = (hourly * 8 * 0.85).toFixed(2);
+                suggestedPrice.textContent = '₹' + suggested;
+                priceInfo.style.display = 'block';
+            } else {
+                priceInfo.style.display = 'none';
+            }
+        });
+
+        document.getElementById('rentalForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const formData = {
+                cycleName: document.getElementById('cycleName').value,
+                cycleType: document.getElementById('cycleType').value,
+                description: document.getElementById('description').value,
+                hourlyRate: parseFloat(hourlyRate.value),
+                dailyRate: parseFloat(dailyRate.value),
+                image: imagePreview.src
+            };
+
+            console.log('Cycle Rental Listing:', formData);
+
+            alert('🎉 Success! Your cycle has been listed for rental.\n\n' +
+                  'Cycle: ' + formData.cycleName + '\n' +
+                  'Type: ' + formData.cycleType + '\n' +
+                  'Hourly Rate: ₹' + formData.hourlyRate + '\n' +
+                  'Daily Rate: ₹' + formData.dailyRate);
+
+            this.reset();
+            imagePreview.style.display = 'none';
+            imageUpload.querySelector('.upload-icon').style.display = 'block';
+            imageUpload.querySelector('.upload-text').style.display = 'block';
+            priceInfo.style.display = 'none';
+        });
+    </script>
+</body>
+</html>
