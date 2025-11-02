@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="TyreTracks - Premium cycle rental and sales with AI recommendations and real-time tracking.">
+    <title>TyreTracks - Premium Cycle Rental & Sales</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1e40af;
+            --secondary: #64748b;
+            --accent: #f59e0b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --bg: #ffffff;
+            --surface: #f8fafc;
+            --text: #1e293b;
+            --border: #e2e8f0;
+        }
+
+        [data-theme="dark"] {
+            --primary: #3b82f6;
+            --accent: #fbbf24;
+            --bg: #0f172a;
+            --surface: #1e293b;
+            --text: #f1f5f9;
+            --border: #334155;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            transition: all 0.3s ease;
+            overflow-x: hidden;
+        }
+
+        /* Preloader */
+        .preloader {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        .loader-text {
+            font-size: 3rem;
+            font-weight: 700;
+            color: white;
+            letter-spacing: 3px;
+            margin-bottom: 2rem;
+        }
+        .loader-bar {
+            width: 300px;
+            height: 4px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .loader-progress {
+            height: 100%;
+            background: var(--accent);
+            width: 0%;
+            animation: loading 2s ease-out forwards;
+        }
+        @keyframes loading {
+            to { width: 100%; }
+        }
+        .fade-out {
+            animation: fadeOut 0.5s forwards;
+        }
+        @keyframes fadeOut {
+            to { opacity: 0; visibility: hidden; }
+        }
+
+        /* Header */
+        header {
+            background: var(--bg);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            border-bottom: 1px solid var(--border);
+        }
+        .header-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            cursor: pointer;
+        }
+        .nav-menu {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+        .nav-item a {
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+            position: relative;
+        }
+        .nav-item a:hover {
+            color: var(--primary);
+        }
+        .nav-item a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--accent);
+            transition: width 0.3s;
+        }
+        .nav-item a:hover::after {
+            width: 100%;
+        }
+        .nav-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        .theme-toggle {
+            background: var(--surface);
+            border: none;
+            padding: 0.6rem;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .theme-toggle:hover {
+            transform: rotate(180deg);
+            background: var(--primary);
+            color: white;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), #3b82f6);
+            color: white;
+            padding: 0.7rem 1.5rem;
+            border: none;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(30,64,175,0.3);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(30,64,175,0.4);
+        }
+        .nav-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text);
+            cursor: pointer;
+        }
+
+        /* Hero */
+        .hero {
+            position: relative;
+            height: 600px;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%);
+        }
+        .hero-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            z-index: 2;
+            color: white;
+        }
+        .hero-content h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            animation: slideInLeft 0.8s ease-out;
+        }
+        .hero-content p {
+            font-size: 1.3rem;
+            margin-bottom: 2rem;
+            opacity: 0.95;
+            animation: slideInLeft 1s ease-out;
+        }
+        .hero-stats {
+            display: flex;
+            gap: 3rem;
+            margin-top: 2rem;
+            animation: slideInUp 1.2s ease-out;
+        }
+        .stat-item {
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            display: block;
+        }
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        @keyframes slideInLeft {
+            from { opacity: 0; transform: translateX(-50px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes slideInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Features Section */
+        .features {
+            padding: 5rem 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: var(--accent);
+            border-radius: 10px;
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+        .feature-card {
+            background: var(--surface);
+            padding: 2rem;
+            border-radius: 20px;
+            text-align: center;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        .feature-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--primary);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        .feature-card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+
+        /* Smart Rental Calculator */
+        .calculator-section {
+            padding: 5rem 2rem;
+            background: var(--surface);
+        }
+        .calculator {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--bg);
+            padding: 3rem;
+            border-radius: 25px;
+            box-shadow: 0 10px 50px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 2rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.8rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        input[type="range"] {
+            flex: 1;
+            height: 6px;
+            border-radius: 10px;
+            background: var(--border);
+            outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+        }
+        .slider-value {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary);
+            min-width: 80px;
+            text-align: right;
+        }
+        select {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        select:focus {
+            border-color: var(--primary);
+            outline: none;
+        }
+        .cost-display {
+            background: linear-gradient(135deg, var(--primary), #3b82f6);
+            color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+            margin: 2rem 0;
+        }
+        .cost-amount {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        .ai-recommendation {
+            background: rgba(16,185,129,0.1);
+            border-left: 4px solid var(--success);
+            padding: 1rem;
+            border-radius: 10px;
+            margin-top: 1rem;
+        }
+
+        /* Bike Gallery */
+        .bike-gallery {
+            padding: 5rem 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .bike-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+        .bike-card {
+            background: var(--surface);
+            border-radius: 20px;
+            overflow: hidden;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .bike-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 50px rgba(0,0,0,0.15);
+        }
+        .bike-image {
+            width: 100%;
+            height: 220px;
+            background: linear-gradient(135deg, #e0e7ff, #dbeafe);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+        }
+        .bike-info {
+            padding: 1.5rem;
+        }
+        .bike-card h3 {
+            font-size: 1.4rem;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+        }
+        .bike-price {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin: 1rem 0;
+        }
+        .bike-features {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin: 1rem 0;
+        }
+        .badge {
+            background: var(--primary);
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* Live Tracking */
+        .tracking-section {
+            padding: 5rem 2rem;
+            background: var(--surface);
+        }
+        .tracking-demo {
+            max-width: 900px;
+            margin: 0 auto;
+            background: var(--bg);
+            padding: 2rem;
+            border-radius: 25px;
+            box-shadow: 0 10px 50px rgba(0,0,0,0.1);
+        }
+        .map-placeholder {
+            width: 100%;
+            height: 400px;
+            background: linear-gradient(135deg, #e0e7ff, #dbeafe);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .tracking-pulse {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(2); opacity: 0.5; }
+        }
+        .tracking-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+        .tracking-stat {
+            text-align: center;
+            padding: 1rem;
+            background: var(--surface);
+            border-radius: 12px;
+        }
+
+        /* Testimonials */
+        .testimonials {
+            padding: 5rem 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .testimonial-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+        .testimonial-card {
+            background: var(--surface);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+        }
+        .testimonial-text {
+            font-style: italic;
+            margin-bottom: 1.5rem;
+            line-height: 1.8;
+        }
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .author-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+        .rating {
+            color: var(--accent);
+            font-size: 1.2rem;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--primary);
+            color: white;
+            padding: 3rem 2rem 1rem;
+        }
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        .footer-section h4 {
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+        .footer-section a {
+            display: block;
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            margin-bottom: 0.5rem;
+            transition: color 0.3s;
+        }
+        .footer-section a:hover {
+            color: var(--accent);
+        }
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .social-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .social-icon:hover {
+            background: var(--accent);
+            transform: translateY(-3px);
+        }
+
+        /* Chat Widget */
+        .chat-widget {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 1000;
+        }
+        .chat-button {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), #3b82f6);
+            color: white;
+            border: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            box-shadow: 0 5px 25px rgba(30,64,175,0.4);
+            transition: all 0.3s;
+        }
+        .chat-button:hover {
+            transform: scale(1.1);
+        }
+        .chat-box {
+            display: none;
+            position: absolute;
+            bottom: 80px;
+            right: 0;
+            width: 350px;
+            background: var(--bg);
+            border-radius: 20px;
+            box-shadow: 0 10px 50px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        .chat-box.active {
+            display: block;
+            animation: slideInUp 0.3s;
+        }
+        .chat-header {
+            background: linear-gradient(135deg, var(--primary), #3b82f6);
+            color: white;
+            padding: 1rem;
+            font-weight: 600;
+        }
+        .chat-messages {
+            height: 300px;
+            padding: 1rem;
+            overflow-y: auto;
+        }
+        .chat-input-area {
+            padding: 1rem;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 0.5rem;
+        }
+        .chat-input {
+            flex: 1;
+            padding: 0.8rem;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            outline: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-menu {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: var(--bg);
+                flex-direction: column;
+                padding: 2rem;
+                box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            }
+            .nav-menu.active {
+                display: flex;
+            }
+            .nav-toggle {
+                display: block;
+            }
+            .hero-content h1 {
+                font-size: 2rem;
+            }
+            .hero-stats {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            .calculator {
+                padding: 2rem 1rem;
+            }
+            .chat-box {
+                width: 300px;
+            }
+        }
+
+        .main-content {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Preloader -->
+    <div class="preloader" id="preloader">
+        <div class="loader-text">TyreTracks</div>
+        <div class="loader-bar">
+            <div class="loader-progress"></div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <!-- Header -->
+        <header>
+            <div class="header-container">
+                <div class="logo">🚴 TyreTracks</div>
+                <nav class="nav-menu" id="navMenu">
+                    <div class="nav-item"><a href="#home">Home</a></div>
+                    <div class="nav-item"><a href="#rent">Rent</a></div>
+                    <div class="nav-item"><a href="#buy">Buy</a></div>
+                    <div class="nav-item"><a href="#track">Track</a></div>
+                    <div class="nav-item"><a href="#provider">Become Provider</a></div>
+                </nav>
+                <div class="nav-actions">
+                    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">🌓</button>
+                    <button class="btn-primary">Sign In</button>
+                    <button class="nav-toggle" onclick="toggleNav()">☰</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Hero -->
+        <section class="hero" id="home">
+            <div class="hero-content">
+                <h1>Your Journey Starts Here</h1>
+                <p>Smart bike rentals with AI-powered recommendations, real-time tracking, and flexible pricing</p>
+                <button class="btn-primary" style="font-size: 1.1rem; padding: 1rem 2.5rem;">Start Your Ride</button>
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <span class="stat-number" id="bikeCount">500+</span>
+                        <span class="stat-label">Bikes Available</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="userCount">10K+</span>
+                        <span class="stat-label">Happy Riders</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">4.9★</span>
+                        <span class="stat-label">Average Rating</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features -->
+        <section class="features">
+            <h2 class="section-title">Why Choose TyreTracks?</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🤖</div>
+                    <h3>AI Recommendations</h3>
+                    <p>Smart algorithm suggests the perfect bike based on your route, weather, and preferences</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📍</div>
+                    <h3>Live GPS Tracking</h3>
+                    <p>Track your ride in real-time with route optimization and safety alerts</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💳</div>
+                    <h3>Flexible Pricing</h3>
+                    <p>Hourly, daily, or monthly plans with dynamic pricing and loyalty rewards</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔧</div>
+                    <h3>Free Maintenance</h3>
+                    <p>24/7 roadside assistance and complimentary service for all rentals</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🌱</div>
+                    <h3>Carbon Offset</h3>
+                    <p>Every ride plants trees. Track your environmental impact in real-time</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🏆</div>
+                    <h3>Rewards Program</h3>
+                    <p>Earn points for every ride and unlock exclusive discounts and perks</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Smart Calculator -->
+        <section class="calculator-section" id="rent">
+            <div class="calculator">
+                <h2 class="section-title">Smart Rental Calculator</h2>
+                
+                <div class="form-group">
+                    <label>Rental Duration</label>
+                    <div class="slider-container">
+                        <input type="range" id="duration" min="1" max="168" value="4">
+                        <span class="slider-value" id="durationValue">4 hours</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Bike Type</label>
+                    <select id="bikeType">
+                        <option value="road">Road Bike - Premium Speed</option>
+                        <option value="mountain">Mountain Bike - Off-Road Beast</option>
+                        <option value="hybrid">Hybrid Bike - City Comfort</option>
+                        <option value="electric">E-Bike - Electric Power</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Planned Distance (km)</label>
+                    <div class="slider-container">
+                        <input type="range" id="distance" min="5" max="100" value="20">
+                        <span class="slider-value" id="distanceValue">20 km</span>
+                    </div>
+                </div>
+
+                <div class="cost-display">
+                    <div style="font-size: 1rem; opacity: 0.9;">Estimated Total Cost</div>
+                    <div class="cost-amount" id="totalCost">$32.00</div>
+                    <div style="font-size: 0.9rem; opacity: 0.8;">Includes insurance & GPS tracking</div>
+                </div>
+
+                <div class="ai-recommendation" id="aiRecommendation">
+                    <strong>🤖 AI Suggestion:</strong> <span id="aiText">Road bike is perfect for your planned distance. Add helmet (+$2) for maximum safety!</span>
+                </div>
+
+                <button class="btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem; margin-top: 1rem;">Book Now</button>
+            </div>
+        </section>
+
+        <!-- Bike Gallery -->
+        <section class="bike-gallery" id="buy">
+            <h2 class="section-title">Premium Bikes For Sale</h2>
+            <div class="bike-grid">
+                <div class="bike-card">
+                    <div class="bike-image">🚴</div>
+                    <div class="bike-info">
+                        <h3>Carbon Road Racer</h3>
+                        <p>Ultra-lightweight carbon frame, 22-speed Shimano</p>
+                        <div class="bike-features">
+                            <span class="badge">Like New</span>
+                            <span class="badge">2023</span>
+                            <span class="badge">Carbon</span>
+                        </div>
+                        <div class="bike-price">$850</div>
+                        <button class="btn-primary" style="width: 100%;">View Details</button>
+                    </div>
+                </div>
+                <div class="bike-card">
+                    <div class="bike-image">🚵</div>
+                    <div class="bike-info">
+                        <h3>Mountain Trail Pro</h3>
+                        <p>Full suspension, hydraulic disc brakes, all-terrain</p>
+                        <div class="bike-features">
+                            <span class="badge">Excellent</span>
+                            <span class="badge">2024</span>
+                            <span class="badge">Aluminum</span>
+                        </div>
+                        <div class="bike-price">$1,200</div>
+                        <button class="btn-primary" style="width: 100%;">View Details</button>
+                    </div>
+                </div>
+                <div class="bike-card">
+                    <div class="bike-image">⚡</div>
+                    <div class="bike-info">
+                        <h3>E-Bike City Cruiser</h3>
+                        <p>500W motor, 50km range, smart display</p>
+                        <div class="bike-features">
+                            <span class="badge">New</span>
+                            <span class="badge">2024</span>
+                            <span class="badge">Electric</span>
+                        </div>
+                        <div class="bike-price">$1,800</div>
+                        <button class="btn-primary" style="width: 100%;">View Details</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Live Tracking Demo -->
+        <section class="tracking-section" id="track">
+            <h2 class="section-title">Real-Time Ride Tracking</h2>
+            <div class="tracking-demo">
+                <div class="map-placeholder">
+                    🗺️
+                    <div class="tracking-pulse" style="top: 45%; left: 50%;"></div>
+                </div>
+                <div class="tracking-info">
+                    <div class="tracking-stat">
+                        <div style="font-size: 2rem; font-weight: 700; color: var(--primary);">12.5 km</div>
+                        <div style="color: var(--secondary); margin-top: 0.5rem;">Distance Covered</div>
+                    </div>
+                    <div class="tracking-stat">
+                        <div style="font-size: 2rem; font-weight: 700; color: var(--success);">24 km/h</div>
+                        <div style="color: var(--secondary); margin-top: 0.5rem;">Current Speed</div>
+                    </div>
+                    <div class="tracking-stat">
+                        <div style="font-size: 2rem; font-weight: 700; color: var(--accent);">45 min</div>
+                        <div style="color: var(--secondary); margin-top: 0.5rem;">Time Elapsed</div>
+                    </div>
+                    <div class="tracking-stat">
+                        <div style="font-size: 2rem; font-weight: 700; color: var(--danger);">156 bpm</div>
+                        <div style="color: var(--secondary); margin-top: 0.5rem;">Heart Rate</div>
+                    </div>
+                </div>
+                <button class="btn-primary" style="width: 100%; margin-top: 2rem; padding: 1rem;">Share My Ride</button>
+            </div>
+        </section>
+
+        <!-- Testimonials -->
+        <section class="testimonials">
+            <h2 class="section-title">What Our Riders Say</h2>
+            <div class="testimonial-grid">
+                <div class="testimonial-card">
+                    <div class="testimonial-text">
+                        "The AI recommendation feature is incredible! It suggested the perfect bike for my mountain trail, and the GPS tracking made me feel safe throughout."
+                    </div>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">RK</div>
+                        <div>
+                            <div style="font-weight: 600;">Rahul Kumar</div>
+                            <div class="rating">★★★★★</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="testimonial-text">
+                        "Best rental experience ever! The pricing is transparent, bikes are well-maintained, and the 24/7 support is exceptional. Highly recommended!"
+                    </div>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">PS</div>
+                        <div>
+                            <div style="font-weight: 600;">Priya Sharma</div>
+                            <div class="rating">★★★★★</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="testimonial-text">
+                        "Love the carbon offset program! Knowing that my daily commute is helping plant trees makes every ride more meaningful. Great initiative!"
+                    </div>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">AM</div>
+                        <div>
+                            <div style="font-weight: 600;">Amit Mehta</div>
+                            <div class="rating">★★★★★</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Provider Section -->
+        <section class="features" id="provider" style="background: var(--surface);">
+            <h2 class="section-title">Become a TyreTracks Provider</h2>
+            <p style="text-align: center; max-width: 700px; margin: 0 auto 3rem; font-size: 1.1rem; color: var(--secondary);">
+                List your bikes and earn passive income. Join our network of trusted providers and grow your business.
+            </p>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">💰</div>
+                    <h3>Earn More</h3>
+                    <p>Set your own prices and earn up to $500/month per bike with our dynamic pricing tools</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Smart Dashboard</h3>
+                    <p>Track earnings, manage bookings, and monitor bike health in real-time</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🛡️</div>
+                    <h3>Insurance Coverage</h3>
+                    <p>Complete protection with $2M liability insurance and damage coverage</p>
+                </div>
+            </div>
+            <div style="text-align: center; margin-top: 3rem;">
+                <button class="btn-primary" style="font-size: 1.1rem; padding: 1rem 2.5rem;">Apply to Become Provider</button>
+            </div>
+        </section>
+
+        <!-- Newsletter -->
+        <section class="features" style="background: linear-gradient(135deg, var(--primary), #3b82f6); color: white; padding: 5rem 2rem;">
+            <div style="max-width: 800px; margin: 0 auto; text-align: center;">
+                <h2 style="color: white; font-size: 2.5rem; margin-bottom: 1rem;">Stay Updated</h2>
+                <p style="font-size: 1.2rem; margin-bottom: 2rem; opacity: 0.95;">
+                    Get exclusive offers, new bike alerts, and cycling tips delivered to your inbox
+                </p>
+                <div style="display: flex; gap: 1rem; max-width: 500px; margin: 0 auto;">
+                    <input type="email" placeholder="Enter your email" style="flex: 1; padding: 1rem; border-radius: 25px; border: none; font-size: 1rem;">
+                    <button class="btn-primary" style="background: var(--accent); padding: 1rem 2rem; white-space: nowrap;">Subscribe</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>🚴 TyreTracks</h4>
+                    <p style="opacity: 0.8; line-height: 1.6;">
+                        Making cycling accessible, sustainable, and enjoyable for everyone. Join the revolution today!
+                    </p>
+                    <div class="social-links">
+                        <div class="social-icon">📘</div>
+                        <div class="social-icon">📸</div>
+                        <div class="social-icon">🐦</div>
+                        <div class="social-icon">💼</div>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <a href="#rent">Rent a Bike</a>
+                    <a href="#buy">Buy Used Bikes</a>
+                    <a href="#track">Track Your Ride</a>
+                    <a href="#provider">Become Provider</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Support</h4>
+                    <a href="#">Help Center</a>
+                    <a href="#">Safety Guidelines</a>
+                    <a href="#">Terms & Conditions</a>
+                    <a href="#">Privacy Policy</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Contact</h4>
+                    <p style="opacity: 0.8;">📍 123 Cycle Lane, Tech City</p>
+                    <p style="opacity: 0.8;">📞 +91-22-12345678</p>
+                    <p style="opacity: 0.8;">✉️ hello@tyretracks.com</p>
+                    <p style="opacity: 0.8;">⏰ 24/7 Support Available</p>
+                </div>
+            </div>
+            <div style="text-align: center; padding-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); opacity: 0.8;">
+                © 2025 TyreTracks. All rights reserved. Made with ❤️ for cyclists
+            </div>
+        </footer>
+
+        <!-- Chat Widget -->
+        <div class="chat-widget">
+            <button class="chat-button" onclick="toggleChat()">💬</button>
+            <div class="chat-box" id="chatBox">
+                <div class="chat-header">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-size: 1.1rem;">TyreTracks Support</div>
+                            <div style="font-size: 0.8rem; opacity: 0.9;">🟢 Online - Avg response: 2 min</div>
+                        </div>
+                        <button onclick="toggleChat()" style="background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer;">×</button>
+                    </div>
+                </div>
+                <div class="chat-messages" id="chatMessages">
+                    <div style="background: var(--surface); padding: 1rem; border-radius: 15px; margin-bottom: 1rem;">
+                        <strong>Support Bot</strong><br>
+                        <span style="color: var(--secondary);">Hi! 👋 How can I help you today?</span>
+                    </div>
+                </div>
+                <div class="chat-input-area">
+                    <input type="text" class="chat-input" placeholder="Type your message..." id="chatInput" onkeypress="if(event.key==='Enter') sendMessage()">
+                    <button class="btn-primary" onclick="sendMessage()" style="padding: 0.8rem 1.2rem; border-radius: 20px;">Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Preloader
+        setTimeout(() => {
+            document.getElementById('preloader').classList.add('fade-out');
+            setTimeout(() => {
+                document.getElementById('preloader').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'block';
+            }, 500);
+        }, 2500);
+
+        // Theme Toggle
+        function toggleTheme() {
+            const body = document.body;
+            const currentTheme = body.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? '' : 'dark';
+            body.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        }
+        
+        // Load saved theme
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) document.body.setAttribute('data-theme', savedTheme);
+
+        // Nav Toggle
+        function toggleNav() {
+            document.getElementById('navMenu').classList.toggle('active');
+        }
+
+        // Chat Widget
+        function toggleChat() {
+            document.getElementById('chatBox').classList.toggle('active');
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const messages = document.getElementById('chatMessages');
+            if (input.value.trim()) {
+                const userMsg = document.createElement('div');
+                userMsg.style.cssText = 'background: var(--primary); color: white; padding: 0.8rem; border-radius: 15px; margin-bottom: 1rem; margin-left: 2rem; text-align: right;';
+                userMsg.textContent = input.value;
+                messages.appendChild(userMsg);
+                input.value = '';
+                
+                // Simulate bot response
+                setTimeout(() => {
+                    const botMsg = document.createElement('div');
+                    botMsg.style.cssText = 'background: var(--surface); padding: 1rem; border-radius: 15px; margin-bottom: 1rem;';
+                    botMsg.innerHTML = '<strong>Support Bot</strong><br><span style="color: var(--secondary);">Thanks for your message! Our team will respond shortly. 🚴</span>';
+                    messages.appendChild(botMsg);
+                    messages.scrollTop = messages.scrollHeight;
+                }, 1000);
+            }
+        }
+
+        // Smart Calculator
+        const duration = document.getElementById('duration');
+        const durationValue = document.getElementById('durationValue');
+        const bikeType = document.getElementById('bikeType');
+        const distance = document.getElementById('distance');
+        const distanceValue = document.getElementById('distanceValue');
+        const totalCost = document.getElementById('totalCost');
+        const aiText = document.getElementById('aiText');
+
+        const bikeRates = {
+            road: 8,
+            mountain: 10,
+            hybrid: 6,
+            electric: 12
+        };
+
+        function updateCalculator() {
+            const hours = parseInt(duration.value);
+            const km = parseInt(distance.value);
+            const type = bikeType.value;
+            const rate = bikeRates[type];
+            
+            // Update duration display
+            if (hours < 24) {
+                durationValue.textContent = `${hours} hour${hours > 1 ? 's' : ''}`;
+            } else {
+                const days = Math.floor(hours / 24);
+                durationValue.textContent = `${days} day${days > 1 ? 's' : ''}`;
+            }
+            
+            // Update distance display
+            distanceValue.textContent = `${km} km`;
+            
+            // Calculate cost with discounts
+            let cost = hours * rate;
+            if (hours >= 24) cost *= 0.85; // 15% daily discount
+            if (hours >= 168) cost *= 0.75; // 25% weekly discount
+            
+            totalCost.textContent = `${cost.toFixed(2)}`;
+            
+            // AI Recommendations
+            let recommendation = '';
+            if (type === 'road' && km > 50) {
+                recommendation = 'Road bike is perfect for long distances! Consider adding a water bottle holder (+$3).';
+            } else if (type === 'mountain' && km < 20) {
+                recommendation = 'For shorter urban rides, a hybrid might be more comfortable and economical.';
+            } else if (type === 'electric' && hours > 8) {
+                recommendation = 'E-bike is great for extended rides! Remember to plan charging stops.';
+            } else if (km > 30) {
+                recommendation = 'For this distance, consider our premium saddle upgrade (+$5) for extra comfort!';
+            } else {
+                recommendation = `${type.charAt(0).toUpperCase() + type.slice(1)} bike is perfect for your planned ride. Add helmet (+$2) for safety!`;
+            }
+            aiText.textContent = recommendation;
+        }
+
+        duration.addEventListener('input', updateCalculator);
+        bikeType.addEventListener('change', updateCalculator);
+        distance.addEventListener('input', updateCalculator);
+        
+        // Initialize
+        updateCalculator();
+
+        // Animated counters for hero stats
+        function animateCounter(id, target) {
+            const element = document.getElementById(id);
+            const duration = 2000;
+            const steps = 60;
+            const increment = target / steps;
+            let current = 0;
+            
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= target) {
+                    element.textContent = target;
+                    clearInterval(timer);
+                } else {
+                    element.textContent = Math.floor(current) + (id === 'bikeCount' ? '+' : 'K+');
+                }
+            }, duration / steps);
+        }
+
+        // Start animations when page loads
+        setTimeout(() => {
+            animateCounter('bikeCount', 500);
+            animateCounter('userCount', 10);
+        }, 500);
+
+        // Smooth scroll for navigation
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    if (window.innerWidth <= 768) {
+                        document.getElementById('navMenu').classList.remove('active');
+                    }
+                }
+            });
+        });
+
+        // Add scroll reveal animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.feature-card, .bike-card, .testimonial-card').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(30px)';
+            el.style.transition = 'all 0.6s ease-out';
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>

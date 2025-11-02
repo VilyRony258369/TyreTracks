@@ -1,0 +1,893 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="TyreTracks - Cycle rental and sales service with flexible pricing and provider opportunities.">
+    <meta name="keywords" content="cycle rental, bike sales, become a provider, TyreTracks">
+    <meta name="author" content="TyreTracks Team">
+    <meta name="theme-color" content="#1e3a8a">
+    <title>TyreTracks - Premium Cycle Rental & Sales</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <link rel="stylesheet" href="css/output.css"> <!-- Link to generated Tailwind CSS -->
+    <style>
+        :root {
+            --primary-color: #1e3a8a; /* Deep Navy */
+            --secondary-color: #64748b; /* Slate Gray */
+            --accent-color: #d4a017; /* Gold */
+            --background-color: #ffffff;
+            --surface-color: #f9fafb; /* Light Gray */
+            --text-color: #1f2937; /* Dark Gray */
+            --header-text-color: #ffffff;
+            --font-family-primary: 'Roboto', sans-serif;
+            --font-family-secondary: 'Open Sans', sans-serif;
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        [data-theme="dark"] {
+            --primary-color: #d4a017; /* Gold */
+            --secondary-color: #1e3a8a; /* Deep Navy */
+            --accent-color: #64748b; /* Slate Gray */
+            --background-color: #121212;
+            --surface-color: #1e1e1e;
+            --text-color: #f0f0f0;
+            --header-text-color: #1f2937;
+        }
+
+        body {
+            font-family: var(--font-family-secondary);
+            margin: 0;
+            padding: 0;
+            color: var(--text-color);
+            background-color: var(--background-color);
+            transition: background-color 0.3s, color 0.3s;
+            line-height: 1.7;
+            font-size: 16px;
+        }
+
+        /* Preloader */
+        .preloader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #1a1a1a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .PRE-text {
+            font-style: italic;
+            color: #fff;
+            font-size: 48px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            font-family: 'Courier New', monospace;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .PRE-text::after {
+            content: '|';
+            position: absolute;
+            right: -10px;
+            animation: blink 0.7s step-end infinite;
+        }
+
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+
+        .fade-out {
+            animation: fadeOut 1s ease-in-out forwards;
+        }
+
+        @keyframes fadeOut {
+            0% { opacity: 1; }
+            100% { opacity: 0; visibility: hidden; }
+        }
+
+        /* Hide main content initially */
+        .main-content {
+            display: none;
+        }
+
+        /* Header */
+        header {
+            background-color: var(--primary-color);
+            color: var(--header-text-color);
+            padding: 0.5rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: var(--shadow-md);
+        }
+
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 1rem;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent-color);
+            font-family: var(--font-family-primary);
+        }
+
+        .nav-menu { 
+            display: flex; 
+            gap: 1rem; 
+            align-items: center;
+        }
+        .nav-item a {
+            color: var(--header-text-color);
+            text-decoration: none;
+            padding: 0.5rem;
+            transition: color 0.3s ease;
+            font-weight: 600;
+            font-size: 0.9rem;
+            position: relative;
+        }
+        .nav-item a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: 0;
+            left: 50%;
+            background-color: var(--accent-color);
+            transition: all 0.3s ease-out;
+        }
+        .nav-item a:hover::after { 
+            width: 100%; 
+            left: 0; 
+        }
+        .nav-toggle { 
+            display: none; 
+            font-size: 1.5rem; 
+            cursor: pointer; 
+            background: none; 
+            border: none; 
+            color: var(--header-text-color); 
+        }
+
+        /* Hero Section */
+        .hero { 
+            position: relative; 
+            height: 50vh;
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            text-align: center; 
+            color: white; 
+            overflow: hidden; 
+        }
+        .hero::before { 
+            content: ''; 
+            position: absolute; 
+            inset: 0; 
+            background: rgba(0, 0, 0, 0.5); 
+            z-index: 1; 
+        }
+        .slide { 
+            position: absolute; 
+            width: 100%; 
+            height: 100%; 
+            opacity: 0; 
+            transition: opacity 1s ease-in-out; 
+            z-index: 0; 
+        }
+        .slide img { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover; 
+            object-position: center;
+        }
+        .slide.active { 
+            opacity: 1; 
+        }
+        .hero-content { 
+            position: relative; 
+            z-index: 2; 
+            padding: 1rem; 
+            max-width: 90%;
+            animation: fadeIn 1.5s ease-out; 
+        }
+        .hero-content h1 { 
+            font-size: 2rem;
+            margin-bottom: 0.5rem; 
+            font-weight: 700; 
+            font-family: var(--font-family-primary); 
+        }
+        .hero-content p { 
+            font-size: 1rem; 
+            margin-bottom: 1rem; 
+        }
+
+        /* Buttons & Toggles */
+        .btn { 
+            background-color: var(--accent-color); 
+            color: var(--background-color); 
+            padding: 0.6rem 1.2rem;
+            border: none; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            transition: transform 0.3s ease, box-shadow 0.3s ease; 
+            font-weight: 600; 
+            font-size: 0.9rem; 
+            text-transform: uppercase; 
+            touch-action: manipulation;
+        }
+        .btn:hover { 
+            transform: translateY(-3px); 
+            box-shadow: var(--shadow-lg); 
+        }
+        .theme-toggle { 
+            background: none; 
+            border: 1px solid var(--accent-color); 
+            color: var(--accent-color); 
+            padding: 0.4rem 0.8rem; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            transition: background-color 0.3s, color 0.3s; 
+            font-size: 0.9rem; 
+        }
+        .theme-toggle:hover { 
+            background-color: var(--accent-color); 
+            color: var(--header-text-color); 
+        }
+
+        /* Sections */
+        .section { 
+            max-width: 1200px; 
+            margin: 2rem auto;
+            padding: 1rem; 
+        }
+        .section h2 { 
+            color: var(--primary-color); 
+            font-size: 1.8rem;
+            margin-bottom: 1rem; 
+            text-align: center; 
+            font-family: var(--font-family-primary); 
+        }
+
+        /* Cards */
+        .grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem; 
+        }
+        .card { 
+            background-color: var(--surface-color); 
+            border-radius: 10px; 
+            box-shadow: var(--shadow-md); 
+            padding: 1rem; 
+            text-align: center; 
+            transition: transform 0.3s ease, box-shadow 0.3s ease; 
+        }
+        .card:hover { 
+            transform: translateY(-5px); 
+            box-shadow: var(--shadow-lg); 
+        }
+        .card img { 
+            max-width: 100%; 
+            height: 120px;
+            object-fit: cover; 
+            margin-bottom: 1rem; 
+        }
+
+        /* Forms & Interactive Elements */
+        .calculator, .dashboard-preview, .contact-form, .contact-details { 
+            background-color: var(--surface-color); 
+            border-radius: 10px; 
+            box-shadow: var(--shadow-md); 
+            padding: 1rem; 
+            max-width: 90%;
+            margin: 1rem auto; 
+        }
+        input, select, textarea { 
+            width: 100%; 
+            padding: 0.5rem; 
+            margin-bottom: 0.75rem; 
+            border: 1px solid #ccc; 
+            border-radius: 4px; 
+            background-color: var(--background-color); 
+            color: var(--text-color); 
+            font-size: 0.9rem; 
+        }
+        input:focus, select:focus, textarea:focus { 
+            border-color: var(--accent-color); 
+            outline: none; 
+            box-shadow: 0 0 5px rgba(212, 160, 23, 0.5); 
+        }
+        label { 
+            display: block; 
+            margin-bottom: 0.3rem; 
+            font-weight: 600; 
+            font-size: 0.9rem; 
+        }
+
+        /* Contact Section */
+        .contact-grid { 
+            display: grid; 
+            grid-template-columns: 1fr;
+            gap: 1rem; 
+            align-items: start; 
+        }
+
+        /* Footer */
+        footer { 
+            background-color: var(--primary-color); 
+            color: var(--header-text-color); 
+            text-align: center; 
+            padding: 2rem 1rem; 
+            margin-top: 2rem; 
+        }
+        .footer-container { 
+            max-width: 1200px; 
+            margin: 0 auto 1rem; 
+            display: flex; 
+            justify-content: space-around; 
+            flex-wrap: wrap; 
+            gap: 1rem; 
+            text-align: left; 
+        }
+        .footer-section h4 { 
+            font-size: 1rem; 
+            margin-bottom: 0.5rem; 
+            color: var(--accent-color); 
+        }
+        .footer-section a { 
+            color: var(--header-text-color); 
+            text-decoration: none; 
+            display: block; 
+            margin-bottom: 0.3rem; 
+            font-size: 0.9rem; 
+            transition: color 0.3s; 
+        }
+        .footer-section a:hover { 
+            color: var(--accent-color); 
+        }
+
+        /* Chat Widget */
+        .chat-toggle { 
+            position: fixed; 
+            bottom: 1rem; 
+            right: 1rem; 
+            background-color: var(--accent-color); 
+            color: var(--background-color); 
+            border: none; 
+            width: 50px; 
+            height: 50px; 
+            border-radius: 50%; 
+            cursor: pointer; 
+            font-size: 1.5rem; 
+            box-shadow: var(--shadow-lg); 
+            z-index: 1001; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+        }
+        .chat-widget { 
+            display: none; 
+            position: fixed; 
+            bottom: 4.5rem; 
+            right: 1rem; 
+            width: 85%;
+            max-width: 300px; 
+            background-color: var(--surface-color); 
+            border-radius: 8px; 
+            box-shadow: var(--shadow-lg); 
+            z-index: 1000; 
+            overflow: hidden; 
+        }
+        .chat-widget h3 { 
+            background-color: var(--primary-color); 
+            color: var(--header-text-color); 
+            margin: 0; 
+            padding: 0.75rem; 
+            font-size: 1rem; 
+        }
+        .chat-widget .content { 
+            padding: 0.75rem; 
+        }
+
+        /* Animation */
+        @keyframes fadeIn { 
+            from { opacity: 0; transform: translateY(20px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .nav-toggle { 
+                display: block; 
+            }
+            .nav-menu { 
+                display: none; 
+                flex-direction: column; 
+                position: absolute; 
+                top: 100%; 
+                left: 0; 
+                width: 100%; 
+                background-color: var(--primary-color); 
+                padding: 0.5rem; 
+                box-shadow: var(--shadow-md); 
+            }
+            .nav-menu.active { 
+                display: flex; 
+            }
+            .nav-item a { 
+                padding: 0.75rem; 
+                font-size: 1rem; 
+            }
+            .hero-content h1 { 
+                font-size: 1.8rem; 
+            }
+            .hero-content p { 
+                font-size: 0.9rem; 
+            }
+            .theme-toggle { 
+                position: absolute; 
+                top: 0.5rem; 
+                right: 3.5rem; 
+                padding: 0.3rem 0.6rem; 
+                font-size: 0.8rem; 
+            }
+            .section { 
+                margin: 1.5rem auto; 
+                padding: 0.75rem; 
+            }
+            .section h2 { 
+                font-size: 1.5rem; 
+            }
+            .card img { 
+                height: 100px; 
+            }
+            .btn { 
+                padding: 0.5rem 1rem; 
+                font-size: 0.8rem; 
+            }
+        }
+
+        @media (max-width: 576px) {
+            body { 
+                font-size: 14px;
+            }
+            .header-container { 
+                padding: 0 0.5rem; 
+            }
+            .logo { 
+                font-size: 1.3rem; 
+            }
+            .nav-toggle { 
+                font-size: 1.3rem; 
+            }
+            .hero { 
+                height: 40vh;
+            }
+            .hero-content h1 { 
+                font-size: 1.5rem; 
+            }
+            .hero-content p { 
+                font-size: 0.8rem; 
+            }
+            .grid { 
+                grid-template-columns: 1fr;
+            }
+            .card { 
+                padding: 0.75rem; 
+            }
+            .card img { 
+                height: 80px; 
+            }
+            .section h2 { 
+                font-size: 1.3rem; 
+            }
+            .calculator, .dashboard-preview, .contact-form, .contact-details { 
+                padding: 0.75rem; 
+            }
+            input, select, textarea { 
+                font-size: 0.8rem; 
+                padding: 0.4rem; 
+            }
+            label { 
+                font-size: 0.8rem; 
+            }
+            .footer-container { 
+                flex-direction: column; 
+                text-align: center; 
+            }
+            .footer-section { 
+                margin-bottom: 1rem; 
+            }
+            .chat-toggle { 
+                width: 40px; 
+                height: 40px; 
+                font-size: 1.2rem; 
+            }
+            .chat-widget { 
+                width: 90%; 
+                max-width: 280px; 
+            }
+            .chat-widget h3 { 
+                font-size: 0.9rem; 
+            }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+        .shadow-neumorphic {
+            box-shadow: 8px 8px 16px rgba(0, 0, 0, 0.1), -8px -8px 16px rgba(255, 255, 255, 0.9);
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #3b82f6;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: #3b82f6;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="preloader">
+        <div class="PRE-text" id="PRE-text"></div>
+    </div>
+    <div class="main-content">
+        <header>
+            <div class="header-container">
+                <div class="logo" tabindex="0">TyreTracks</div>
+                <nav class="nav-menu" id="navMenu">
+                    <div class="nav-item"><a href="#home">Home</a></div>
+                    <div class="nav-item"><a href="#rent">Rent</a></div>
+                    <div class="nav-item"><a href="#buy">Buy</a></div>
+                    <div class="nav-item"><a href="#provider">Become a Provider</a></div>
+                    <div class="nav-item"><a href="#contact">Contact</a></div>
+                </nav>
+                <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle Theme"><i class="bi bi-brightness-high-fill"></i></button>
+                <button class="nav-toggle" onclick="toggleNav()" aria-label="Toggle Navigation">&#9776;</button>
+            </div>
+        </header>
+
+        <main>
+            <section id="home" class="hero">
+                <div class="slide active"><img src="header1.png" alt="A person riding a road bike on a scenic route."></div>
+                <div class="slide"><img src="code2.png" alt="A mountain biker navigating a challenging trail."></div>
+                <div class="hero-content">
+                    <h1>Your Adventure Awaits</h1>
+                    <p>Discover flexible rentals and high-quality used cycles with TyreTracks. Start your journey today!</p>
+                    <a href="#rent" class="btn">Explore Rentals</a>
+                </div>
+            </section>
+
+            <section id="rent" class="section bg-gradient-to-br from-blue-100 via-white to-green-100 py-16">
+                <div class="container mx-auto px-6">
+                    <h2 class="text-4xl font-extrabold text-center text-gray-800 mb-10 animate-fade-in">Rent Your Dream Cycle</h2>
+                    <div class="calculator max-w-lg mx-auto bg-white p-8 rounded-2xl shadow-neumorphic transition-all duration-300">
+                        <div class="mb-6">
+                            <label for="rent-time" class="block text-sm font-medium text-gray-700 mb-3">Rental Duration (hours):</label>
+                            <div class="flex items-center gap-4">
+                                <input type="range" id="rent-time" min="1" max="24" value="1" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600" aria-label="Rental duration">
+                                <span id="rent-time-value" class="text-lg font-semibold text-gray-800">1 hr</span>
+                            </div>
+                            <p id="rent-time-error" class="text-red-500 text-sm mt-2 hidden">Please select at least 1 hour.</p>
+                        </div>
+                        <div class="mb-6">
+                            <label for="cycle-type" class="block text-sm font-medium text-gray-700 mb-3">Cycle Type:</label>
+                            <div class="relative">
+                                <select id="cycle-type" aria-label="Select cycle type" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition duration-200 appearance-none bg-white">
+                                    <option value="10" data-type="road" data-image="https://via.placeholder.com/50?text=Road">Road Bike ($10/hr)</option>
+                                    <option value="12" data-type="mountain" data-image="https://via.placeholder.com/50?text=Mountain">Mountain Bike ($12/hr)</option>
+                                    <option value="8" data-type="hybrid" data-image="https://via.placeholder.com/50?text=Hybrid">Hybrid Bike ($8/hr)</option>
+                                </select>
+                                <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                </div>
+                            </div>
+                            <div id="cycle-image" class="mt-4 flex justify-center">
+                                <img src="https://via.placeholder.com/50?text=Road" alt="Selected cycle" class="h-16 w-16 object-contain transition-opacity duration-300" aria-hidden="true">
+                            </div>
+                        </div>
+                        <p id="rent-cost" class="text-xl font-semibold text-gray-800 mb-6 text-center">Estimated Cost: $0.00</p>
+                        <div id="availability-btn-container" class="mb-6 text-center transform translate-y-4 opacity-0 transition-all duration-300" aria-live="polite">
+                            <a id="availability-link" href="/availability/road" class="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200 focus:ring-2 focus:ring-blue-500 focus:outline-none" role="button">Check Availability</a>
+                        </div>
+                        <button id="start-rental" class="w-full bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors duration-200 focus:ring-2 focus:ring-green-500 focus:outline-none" disabled>Start Rental</button>
+                    </div>
+                </div>
+            </section>
+
+            <section id="buy" class="section" style="background-color: var(--surface-color); padding: 2rem 1rem;">
+                <h2>Buy Used Cycles</h2>
+                <div class="grid">
+                    <div class="card"><img src="RoadB.webp" alt="Sleek road bike."><h3>Road Bike</h3><p>Excellent condition, lightweight frame, ideal for speed and distance. <strong>$150</strong></p><button class="btn">View Details</button></div>
+                    <div class="card"><img src="mountain.webp" alt="Sturdy mountain bike."><h3>Mountain Bike</h3><p>Great for trails and off-road adventures, durable and robust. <strong>$200</strong></p><button class="btn">View Details</button></div>
+                    <div class="card"><img src="hybrid.png" alt="Versatile hybrid bike."><h3>Hybrid Bike</h3><p>Versatile and comfortable, for city commuting and leisure rides. <strong>$175</strong></p><button class="btn">View Details</button></div>
+                </div>
+            </section>
+
+            <section id="provider" class="section">
+                <h2>Become a Rental Provider</h2>
+                <div class="dashboard-preview">
+                    <h3>Provider Dashboard Preview</h3>
+                    <p>Join our network to earn by renting out your cycles. Track earnings, manage rentals, and connect with customers seamlessly.</p>
+                    <ul style="text-align: left;">
+                        <li><strong>Earnings:</strong> $500 (Simulated)</li>
+                        <li><strong>Active Rentals:</strong> 3</li>
+                        <li><strong>Pending Applications:</strong> 1</li>
+                    </ul>
+                    <button class="btn">Apply Now</button>
+                </div>
+            </section>
+
+            <section id="contact" class="section">
+                <h2>Contact Us</h2>
+                <div class="contact-grid">
+                    <div class="contact-form">
+                        <form id="contactForm">
+                            <label for="name">Full Name</label><input type="text" id="name" placeholder="Your Name" required aria-label="Your name">
+                            <label for="email">Email Address</label><input type="email" id="email" placeholder="Your Email" required aria-label="Your email">
+                            <label for="reason">Reason for Contact</label>
+                            <select id="reason" required aria-label="Contact reason"><option value="">Select Reason</option><option value="support">Support</option><option value="partnership">Partnership</option><option value="callback">Request Callback</option></select>
+                            <label for="message">Message</label><textarea id="message" rows="4" placeholder="Your Message" required aria-label="Your message"></textarea>
+                            <button type="submit" class="btn">Send Message</button>
+                        </form>
+                    </div>
+                    <div class="contact-details">
+                        <h3>Company Information</h3>
+                        <p><strong>Address:</strong> 123 Cycle Lane, Tech City, India - 400001</p>
+                        <p><strong>Phone:</strong> +91-22-12345678</p>
+                        <p><strong>Support Hours:</strong> Mon-Fri, 9:00 AM - 6:00 PM IST</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <div class="footer-container">
+                <div class="footer-section"><h4>About Us</h4><a href="#">Our Story</a><a href="#">Mission</a><a href="#">Team</a></div>
+                <div class="footer-section"><h4>Services</h4><a href="#rent">Rentals</a><a href="#buy">Sales</a><a href="#provider">Provider Network</a></div>
+                <div class="footer-section"><h4>Support</h4><a href="#">FAQ</a><a href="#contact">Contact</a><a href="#">Policies</a></div>
+                <div class="footer-section"><h4>Connect</h4><a href="#">Blog</a><a href="#">News</a><a href="#">Careers</a></div>
+            </div>
+            <p>© 2025 TyreTracks. All rights reserved.</p>
+        </footer>
+
+        <button class="chat-toggle" onclick="toggleChat()" aria-label="Toggle Chat">💬</button>
+        <div class="chat-widget" id="chatWidget">
+            <h3>Live Support</h3>
+            <div class="content">
+                <p>Hi! How can we assist you today?</p>
+                <input type="text" placeholder="Type your message..." aria-label="Chat input">
+                <button class="btn" onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Preloader typewriter effect
+        const text = "TyreTracks";
+        const heroText = document.getElementById('PRE-text');
+        const preloader = document.querySelector('.preloader');
+        const mainContent = document.querySelector('.main-content');
+        let index = 0;
+
+        function typeWriter() {
+            if (index < text.length) {
+                heroText.textContent += text.charAt(index);
+                index++;
+                setTimeout(typeWriter, 300);
+            } else {
+                setTimeout(() => {
+                    preloader.classList.add('fade-out');
+                    setTimeout(() => {
+                        preloader.style.display = 'none';
+                        mainContent.style.display = 'block';
+                    }, 1000); // Matches fadeOut animation duration
+                }, 1000); // Pause after typing
+            }
+        }
+
+        // Start typewriter animation when page loads
+        window.addEventListener('load', () => {
+            setTimeout(typeWriter, 500);
+        });
+
+        // Nav toggle
+        function toggleNav() { 
+            document.getElementById('navMenu').classList.toggle('active'); 
+        }
+
+        // Theme toggle
+        function toggleTheme() {
+            const body = document.body;
+            const theme = body.getAttribute('data-theme') === 'dark' ? '' : 'dark';
+            body.setAttribute('data-theme', theme);
+            theme ? localStorage.setItem('theme', 'dark') : localStorage.removeItem('theme');
+        }
+        if (localStorage.getItem('theme') === 'dark') document.body.setAttribute('data-theme', 'dark');
+
+        // Slideshow
+        let slideIndex = 0;
+        const slides = document.querySelectorAll('.slide');
+        function showSlides() {
+            slides.forEach(slide => slide.classList.remove('active'));
+            slideIndex = (slideIndex + 1) % slides.length;
+            slides[slideIndex].classList.add('active');
+        }
+        setInterval(showSlides, 5000);
+
+        // Chat widget
+        function toggleChat() {
+            const chat = document.getElementById('chatWidget');
+            chat.style.display = chat.style.display === 'block' ? 'none' : 'block';
+        }
+        function sendMessage() { 
+            alert('Message sent! (This is a simulation)'); 
+        }
+
+        // Rental calculator
+        const rentTimeInput = document.getElementById('rent-time');
+        const rentTimeValue = document.getElementById('rent-time-value');
+        const rentTimeError = document.getElementById('rent-time-error');
+        const cycleTypeSelect = document.getElementById('cycle-type');
+        const rentCostDisplay = document.getElementById('rent-cost');
+        const availabilityBtnContainer = document.getElementById('availability-btn-container');
+        const availabilityLink = document.getElementById('availability-link');
+        const cycleImage = document.getElementById('cycle-image').querySelector('img');
+        const startRentalButton = document.getElementById('start-rental');
+
+        function updateCost() {
+            const hours = parseInt(rentTimeInput.value) || 0;
+            const rate = parseFloat(cycleTypeSelect.value) || 0;
+            const cost = (hours * rate).toFixed(2);
+            rentCostDisplay.textContent = `Estimated Cost: $${cost}`;
+            startRentalButton.disabled = hours <= 0 || isNaN(rate);
+            rentTimeError.classList.toggle('hidden', hours > 0);
+        }
+
+        function updateAvailabilityLink() {
+            const selectedOption = cycleTypeSelect.options[cycleTypeSelect.selectedIndex];
+            const cycleType = selectedOption.dataset.type;
+            const imageUrl = selectedOption.dataset.image;
+            availabilityLink.href = `/availability/${cycleType}`;
+            cycleImage.src = imageUrl;
+            cycleImage.alt = `Selected ${cycleType} cycle`;
+            availabilityBtnContainer.classList.remove('translate-y-4', 'opacity-0');
+        }
+
+        rentTimeInput.addEventListener('input', () => {
+            rentTimeValue.textContent = `${rentTimeInput.value} hr${rentTimeInput.value > 1 ? 's' : ''}`;
+            updateCost();
+        });
+
+        cycleTypeSelect.addEventListener('change', () => {
+            updateCost();
+            updateAvailabilityLink();
+        });
+
+        // Initialize on page load
+        updateCost();
+        updateAvailabilityLink();
+
+        // Accessibility: Allow keyboard navigation for slider
+        rentTimeInput.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowUp' || e.key === 'ArrowRight') {
+                rentTimeInput.value = Math.min(parseInt(rentTimeInput.value) + 1, 24);
+                rentTimeInput.dispatchEvent(new Event('input'));
+            } else if (e.key === 'ArrowDown' || e.key === 'ArrowLeft') {
+                rentTimeInput.value = Math.max(parseInt(rentTimeInput.value) - 1, 1);
+                rentTimeInput.dispatchEvent(new Event('input'));
+            }
+        });
+
+        // Form validation
+        document.getElementById('contactForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('name').value;
+            alert(`Thank you, ${name}! Your message has been sent. We will contact you soon.`);
+            e.target.reset();
+        });
+    </script>
+    <script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+            return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+            if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+                try {
+                    var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                    var firstSheetName = workbook.SheetNames[0];
+                    var worksheet = workbook.Sheets[firstSheetName];
+                    var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                    var filteredData = jsonData.filter(row => row.some(filledCell));
+                    var headerRowIndex = filteredData.findIndex((row, index) =>
+                        row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                    );
+                    if (headerRowIndex === -1 || headerRowIndex > 25) {
+                        headerRowIndex = 0;
+                    }
+                    var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex));
+                    csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                    return csv;
+                } catch (e) {
+                    console.error(e);
+                    return "";
+                }
+            }
+            return gk_fileData[filename] || "";
+        }
+    </script>
+</body>
+</html>

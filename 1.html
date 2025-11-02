@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="TyreTracks -Cycle rental and sales service with flexible pricing and provider opportunities.">
+    <meta name="keywords" content="cycle rental, bike sales, become a provider, TyreTracks">
+    <meta name="author" content="TyreTracks Team">
+    <meta name="theme-color" content="#1e3a8a">
+    <title>TyreTracks - Premium Cycle Rental & Sales</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <style>
+        :root {
+            --primary-color: #1e3a8a; /* Deep Navy */
+            --secondary-color: #64748b; /* Slate Gray */
+            --accent-color: #d4a017; /* Gold */
+            --background-color: #ffffff;
+            --surface-color: #f9fafb; /* Light Gray */
+            --text-color: #1f2937; /* Dark Gray */
+            --header-text-color: #ffffff;
+            --font-family-primary: 'Roboto', sans-serif;
+            --font-family-secondary: 'Open Sans', sans-serif;
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        [data-theme="dark"] {
+            --primary-color: #d4a017; /* Gold */
+            --secondary-color: #1e3a8a; /* Deep Navy */
+            --accent-color: #64748b; /* Slate Gray */
+            --background-color: #121212;
+            --surface-color: #1e1e1e;
+            --text-color: #f0f0f0;
+            --header-text-color: #1f2937;
+        }
+
+        body {
+            font-family: var(--font-family-secondary);
+            margin: 0;
+            padding: 0;
+            color: var(--text-color);
+            background-color: var(--background-color);
+            transition: background-color 0.3s, color 0.3s;
+            line-height: 1.7;
+        }
+
+        /* Header */
+        header {
+            background-color: var(--primary-color);
+            color: var(--header-text-color);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: var(--shadow-md);
+        }
+
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--accent-color);
+            font-family: var(--font-family-primary);
+        }
+
+        .nav-menu { display: flex; gap: 1.5rem; }
+        .nav-item a {
+            color: var(--header-text-color);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            transition: color 0.3s ease;
+            font-weight: 600;
+            position: relative;
+        }
+        .nav-item a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: 0;
+            left: 50%;
+            background-color: var(--accent-color);
+            transition: all 0.3s ease-out;
+        }
+        .nav-item a:hover::after { width: 100%; left: 0; }
+        .nav-toggle { display: none; font-size: 1.8rem; cursor: pointer; background: none; border: none; color: var(--header-text-color); }
+
+        /* Hero Section */
+        .hero { position: relative; height: 70vh; display: flex; align-items: center; justify-content: center; text-align: center; color: white; overflow: hidden; }
+        .hero::before { content: ''; position: absolute; inset: 0; background: rgba(0, 0, 0, 0.5); z-index: 1; }
+        .slide { position: absolute; width: 100%; height: 100%; opacity: 0; transition: opacity 1s ease-in-out; z-index: 0; }
+        .slide img { width: 100%; height: 100%; object-fit: cover; }
+        .slide.active { opacity: 1; }
+        .hero-content { position: relative; z-index: 2; padding: 2rem; max-width: 800px; animation: fadeIn 1.5s ease-out; }
+        .hero-content h1 { font-size: 3.5rem; margin-bottom: 1rem; font-weight: 700; font-family: var(--font-family-primary); }
+        .hero-content p { font-size: 1.3rem; margin-bottom: 2rem; }
+
+        /* Buttons & Toggles */
+        .btn { background-color: var(--accent-color); color: var(--background-color); padding: 0.8rem 1.8rem; border: none; border-radius: 5px; cursor: pointer; transition: transform 0.3s ease, box-shadow 0.3s ease; font-weight: 600; font-size: 1rem; text-transform: uppercase; }
+        .btn:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+        .theme-toggle { background: none; border: 1px solid var(--accent-color); color: var(--accent-color); padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer; transition: background-color 0.3s, color 0.3s; }
+        .theme-toggle:hover { background-color: var(--accent-color); color: var(--header-text-color); }
+
+        /* Sections */
+        .section { max-width: 1200px; margin: 4rem auto; padding: 2rem; }
+        .section h2 { color: var(--primary-color); font-size: 2.5rem; margin-bottom: 2rem; text-align: center; font-family: var(--font-family-primary); }
+
+        /* Cards */
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; }
+        .card { background-color: var(--surface-color); border-radius: 10px; box-shadow: var(--shadow-md); padding: 2rem; text-align: center; transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .card:hover { transform: translateY(-8px); box-shadow: var(--shadow-lg); }
+        .card img { max-width: 500px; height:180px ; margin-bottom: 1.5rem; }
+        
+        /* Forms & Interactive Elements */
+        .calculator, .dashboard-preview, .contact-form, .contact-details { background-color: var(--surface-color); border-radius: 10px; box-shadow: var(--shadow-md); padding: 2rem; max-width: 500px; margin: 2rem auto; }
+        input, select, textarea { width: 100%; padding: 0.75rem; margin-bottom: 1rem; border: 1px solid #ccc; border-radius: 4px; background-color: var(--background-color); color: var(--text-color); }
+        input:focus, select:focus, textarea:focus { border-color: var(--accent-color); outline: none; box-shadow: 0 0 5px rgba(212, 160, 23, 0.5); }
+        label { display: block; margin-bottom: 0.5rem; font-weight: 600; }
+
+        /* Contact Section */
+        .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start; }
+
+        /* Footer */
+        footer { background-color: var(--primary-color); color: var(--header-text-color); text-align: center; padding: 3rem 1rem; margin-top: 4rem; }
+        .footer-container { max-width: 1200px; margin: 0 auto 2rem; display: flex; justify-content: space-around; flex-wrap: wrap; gap: 2rem; text-align: left; }
+        .footer-section h4 { font-size: 1.2rem; margin-bottom: 1rem; color: var(--accent-color); }
+        .footer-section a { color: var(--header-text-color); text-decoration: none; display: block; margin-bottom: 0.5rem; transition: color 0.3s; }
+        .footer-section a:hover { color: var(--accent-color); }
+
+        /* Chat Widget */
+        .chat-toggle { position: fixed; bottom: 1.5rem; right: 1.5rem; background-color: var(--accent-color); color: var(--background-color); border: none; width: 60px; height: 60px; border-radius: 50%; cursor: pointer; font-size: 2rem; box-shadow: var(--shadow-lg); z-index: 1001; display: flex; align-items: center; justify-content: center; }
+        .chat-widget { display: none; position: fixed; bottom: 6rem; right: 1.5rem; width: 320px; background-color: var(--surface-color); border-radius: 8px; box-shadow: var(--shadow-lg); z-index: 1000; overflow: hidden; }
+        .chat-widget h3 { background-color: var(--primary-color); color: var(--header-text-color); margin: 0; padding: 1rem; }
+        .chat-widget .content { padding: 1rem; }
+
+        /* Animation */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .nav-toggle { display: block; }
+            .nav-menu { display: none; flex-direction: column; position: absolute; top: 100%; left: 0; width: 100%; background-color: var(--primary-color); padding: 1rem; }
+            .nav-menu.active { display: flex; }
+            .hero-content h1 { font-size: 2.5rem; }
+            .contact-grid { grid-template-columns: 1fr; }
+            .theme-toggle { position: absolute; top: 1rem; right: 5rem; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <div class="logo" tabindex="0">TyreTracks</div>
+            <nav class="nav-menu" id="navMenu">
+                <div class="nav-item"><a href="#home">Home</a></div>
+                <div class="nav-item"><a href="#rent">Rent</a></div>
+                <div class="nav-item"><a href="#buy">Buy</a></div>
+                <div class="nav-item"><a href="#provider">Become a Provider</a></div>
+                <div class="nav-item"><a href="#contact">Contact</a></div>
+            </nav>
+            <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle Theme"><i class="bi bi-brightness-high-fill"></i>   </button>
+            <button class="nav-toggle" onclick="toggleNav()" aria-label="Toggle Navigation">&#9776;</button>
+        </div>
+    </header>
+
+    <main>
+        <section id="home" class="hero">
+            <div class="slide active"><img src="header1.png" alt="A person riding a road bike on a scenic route."></div>
+            <div class="slide"><img src="code2.png" alt="A mountain biker navigating a challenging trail."></div>
+            <div class="hero-content">
+                <h1>Your Adventure Awaits</h1>
+                <p>Discover flexible rentals and high-quality used cycles with TyreTracks. Start your journey today!</p>
+                <a href="#rent" class="btn">Explore Rentals</a>
+            </div>
+        </section>
+
+        <section id="rent" class="section">
+            <h2>Rent a Cycle</h2>
+            <div class="calculator">
+                <label for="rent-time">Rental Duration (hours):</label>
+                <input type="number" id="rent-time" min="1" placeholder="Enter hours" aria-label="Rental duration">
+                <label for="cycle-type">Cycle Type:</label>
+                <select id="cycle-type" aria-label="Select cycle type">
+                    <option value="10">Road Bike ($10/hr)</option>
+                    <option value="12">Mountain Bike ($12/hr)</option>
+                    <option value="8">Hybrid Bike ($8/hr)</option>
+                </select>
+                <p id="rent-cost" style="font-weight: 600; font-size: 1.2rem; margin-top: 1rem;">Estimated Cost: $0.00</p>
+                <button class="btn">Start Rental</button>
+            </div>
+        </section>
+
+        <section id="buy" class="section" style="background-color: var(--surface-color); padding: 4rem 2rem;">
+            <h2>Buy Used Cycles</h2>
+            <div class="grid">
+                <div class="card"><img src="RoadB.webp" alt="Sleek road bike."><h3>Road Bike</h3><p>Excellent condition, lightweight frame, ideal for speed and distance. <strong>$150</strong></p><button class="btn">View Details</button></div>
+                <div class="card"><img src="mountain.webp" alt="Sturdy mountain bike."><h3>Mountain Bike</h3><p>Great for trails and off-road adventures, durable and robust. <strong>$200</strong></p><button class="btn">View Details</button></div>
+                <div class="card"><img src="hybrid.png" alt="Versatile hybrid bike."><h3>Hybrid Bike</h3><p>Versatile and comfortable, for city commuting and leisure rides. <strong>$175</strong></p><button class="btn">View Details</button></div>
+            </div>
+        </section>
+
+        <section id="provider" class="section">
+            <h2>Become a Rental Provider</h2>
+            <div class="dashboard-preview">
+                <h3>Provider Dashboard Preview</h3>
+                <p>Join our network to earn by renting out your cycles. Track earnings, manage rentals, and connect with customers seamlessly.</p>
+                <ul style="text-align: left;">
+                    <li><strong>Earnings:</strong> $500 (Simulated)</li>
+                    <li><strong>Active Rentals:</strong> 3</li>
+                    <li><strong>Pending Applications:</strong> 1</li>
+                </ul>
+                <button class="btn">Apply Now</button>
+            </div>
+        </section>
+
+        <section id="contact" class="section">
+            <h2>Contact Us</h2>
+            <div class="contact-grid">
+                <div class="contact-form">
+                    <form id="contactForm">
+                        <label for="name">Full Name</label><input type="text" id="name" placeholder="Your Name" required aria-label="Your name">
+                        <label for="email">Email Address</label><input type="email" id="email" placeholder="Your Email" required aria-label="Your email">
+                        <label for="reason">Reason for Contact</label>
+                        <select id="reason" required aria-label="Contact reason"><option value="">Select Reason</option><option value="support">Support</option><option value="partnership">Partnership</option><option value="callback">Request Callback</option></select>
+                        <label for="message">Message</label><textarea id="message" rows="4" placeholder="Your Message" required aria-label="Your message"></textarea>
+                        <button type="submit" class="btn">Send Message</button>
+                    </form>
+                </div>
+                <div class="contact-details">
+                    <h3>Company Information</h3>
+                    <p><strong>Address:</strong> 123 Cycle Lane, Tech City, India - 400001</p>
+                    <p><strong>Phone:</strong> +91-22-12345678</p>
+                    <p><strong>Support Hours:</strong> Mon-Fri, 9:00 AM - 6:00 PM IST</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-container">
+            <div class="footer-section"><h4>About Us</h4><a href="#">Our Story</a><a href="#">Mission</a><a href="#">Team</a></div>
+            <div class="footer-section"><h4>Services</h4><a href="#rent">Rentals</a><a href="#buy">Sales</a><a href="#provider">Provider Network</a></div>
+            <div class="footer-section"><h4>Support</h4><a href="#">FAQ</a><a href="#contact">Contact</a><a href="#">Policies</a></div>
+            <div class="footer-section"><h4>Connect</h4><a href="#">Blog</a><a href="#">News</a><a href="#">Careers</a></div>
+        </div>
+        <p>© 2025 TyreTracks. All rights reserved.</p>
+    </footer>
+
+    <button class="chat-toggle" onclick="toggleChat()" aria-label="Toggle Chat">💬</button>
+    <div class="chat-widget" id="chatWidget">
+        <h3>Live Support</h3>
+        <div class="content">
+            <p>Hi! How can we assist you today?</p>
+            <input type="text" placeholder="Type your message..." aria-label="Chat input">
+            <button class="btn" onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        // Nav toggle
+        function toggleNav() { document.getElementById('navMenu').classList.toggle('active'); }
+
+        // Theme toggle
+        function toggleTheme() {
+            const body = document.body;
+            const theme = body.getAttribute('data-theme') === 'dark' ? '' : 'dark';
+            body.setAttribute('data-theme', theme);
+            theme ? localStorage.setItem('theme', 'dark') : localStorage.removeItem('theme');
+        }
+        if (localStorage.getItem('theme') === 'dark') document.body.setAttribute('data-theme', 'dark');
+        
+        // Slideshow
+        let slideIndex = 0;
+        const slides = document.querySelectorAll('.slide');
+        function showSlides() {
+            slides.forEach(slide => slide.classList.remove('active'));
+            slideIndex = (slideIndex + 1) % slides.length;
+            slides[slideIndex].classList.add('active');
+        }
+        setInterval(showSlides, 5000);
+
+        // Chat widget
+        function toggleChat() {
+            const chat = document.getElementById('chatWidget');
+            chat.style.display = chat.style.display === 'block' ? 'none' : 'block';
+        }
+        function sendMessage() { alert('Message sent! (This is a simulation)'); }
+
+        // Rental calculator
+        const rentTime = document.getElementById('rent-time');
+        const cycleType = document.getElementById('cycle-type');
+        if(rentTime && cycleType) {
+            rentTime.addEventListener('input', calculateRent);
+            cycleType.addEventListener('change', calculateRent);
+        }
+        function calculateRent() {
+            const time = parseInt(rentTime.value) || 0;
+            const rate = parseInt(cycleType.value) || 0;
+            document.getElementById('rent-cost').textContent = `Estimated Cost: $${(time * rate).toFixed(2)}`;
+        }
+
+        // Form validation
+        document.getElementById('contactForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('name').value;
+            alert(`Thank you, ${name}! Your message has been sent. We will contact you soon.`);
+            e.target.reset();
+        });
+    </script>
+</body>
+</html>

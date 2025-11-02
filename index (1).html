@@ -1,0 +1,444 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta名稱="description" content="Rent cycles with timer-based pricing, buy used cycles, or become a rental provider with our easy-to-use platform.">
+    <title>TyreTracks - Rent, Buy, or Provide Cycles</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+        }
+        .smooth-scroll {
+            scroll-behavior: smooth;
+        }
+        .hover-scale {
+            transition: transform 0.3s ease;
+        }
+        .hover-scale:hover {
+            transform: scale(1.05);
+        }
+        .header{
+            max-width: 80rem;
+            margin-left: auto;
+            margin-right: auto;
+            padding-left: 1rem;
+            padding-right: 1rem;
+            text-align: center;
+        }
+        .section{
+            position: relative;      
+            color:#ffffff;
+            padding-top: 6rem;
+            padding-bottom: 6rem;
+            box-shadow: 10px 20px 10px inset;
+            background-size: cover;
+            overflow:hidden;
+            transition: maroon 0.6s ease;
+            padding: 20px;
+            text-align: center;
+        }
+        #home {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            overflow: hidden;
+            background-color: #f4f4f4;
+        }
+        .slide {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+            z-index: -1;
+        }
+        .slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: blur(5px);
+        }
+        .slide.active {
+            opacity: 1;
+            z-index: 0;
+        }
+        .text-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 2rem;
+            text-align: center;
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+        }
+        .text-content.active {
+            opacity: 1;
+        }
+        #home button {
+            background-color: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        #home button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .cycle-grid {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .cycle-card {
+            border: 1px solid #ddd;
+            padding: 15px;
+            width: 200px;
+            text-align: center;
+        }
+        .cycle-card img {
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .cycle-card img:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+        }
+        select {
+            padding: 10px;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+        footer {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 10px 0;
+        }
+        footer a {
+            color: white;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+        footer a:hover {
+            text-decoration: underline;
+        }
+        @keyframes slideAnimation {
+            0% { opacity: 0; }
+            10% { opacity: 1; }
+            33.33% { opacity: 1; }
+            43.33% { opacity: 0; }
+            66.66% { opacity: 0; }
+            76.66% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+        .slide:nth-child(1) { animation: slideAnimation 15s infinite; }
+        .slide:nth-child(2) { animation: slideAnimation 15s infinite 5s; }
+        .slide:nth-child(3) { animation: slideAnimation 15s infinite 10s; }
+        .text-content:nth-child(4) { animation: slideAnimation 15s infinite; }
+        .text-content:nth-child(5) { animation: slideAnimation 15s infinite 5s; }
+        .text-content:nth-child(6) { animation: slideAnimation 15s infinite 10s; }
+        
+    </style>
+    <script>
+        // Mobile menu toggle and form handling
+        document.addEventListener('DOMContentLoaded', () => {
+            // Mobile menu toggle
+            const menuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            menuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+
+            // Booking form handling with timer simulation
+            const bookingForm = document.getElementById('booking-form');
+            const timerDisplay = document.getElementById('timer-display');
+            const costDisplay = document.getElementById('cost-display');
+            let timerInterval = null;
+            let startTime = null;
+            const hourlyRate = 5; // $5 per hour
+
+            bookingForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const cycleType = document.getElementById('cycle-type').value;
+                const startDate = document.getElementById('start-date').value;
+
+                if (cycleType && startDate) {
+                    // Simulate booking start
+                    startTime = new Date();
+                    timerDisplay.classList.remove('hidden');
+                    costDisplay.classList.remove('hidden');
+                    timerDisplay.textContent = 'Rental Time: 00:00:00';
+                    costDisplay.textContent = 'Current Cost: $0.00';
+
+                    // Start timer
+                    if (timerInterval) clearInterval(timerInterval);
+                    timerInterval = setInterval(() => {
+                        const now = new Date();
+                        const elapsed = Math.floor((now - startTime) / 1000); // Seconds
+                        const hours = Math.floor(elapsed / 3600);
+                        const minutes = Math.floor((elapsed % 3600) / 60);
+                        const seconds = elapsed % 60;
+                        timerDisplay.textContent = `Rental Time: ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+                        const cost = (elapsed / 3600) * hourlyRate; // Calculate cost based on time
+                        costDisplay.textContent = `Current Cost: $${cost.toFixed(2)}`;
+                    }, 1000);
+
+                    alert(`Cycle (${cycleType}) booked! Timer started.`);
+                } else {
+                    alert('Please select a cycle type and start date.');
+                }
+            });
+
+            // Stop timer button
+            document.getElementById('stop-timer').addEventListener('click', () => {
+                if (timerInterval) {
+                    clearInterval(timerInterval);
+                    alert('Rental ended. Final cost displayed.');
+                }
+            });
+
+            // Contact form handling
+            const contactForm = document.getElementById('contact-form');
+            contactForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const name = contactForm.querySelector('#contact-name').value;
+                const email = contactForm.querySelector('#contact-email').value;
+                const message = contactForm.querySelector('#contact-message').value;
+                if (name && email && message) {
+                    alert('Inquiry sent successfully!');
+                    contactForm.reset();
+                } else {
+                    alert('Please fill out all fields.');
+                }
+            });
+
+            // Membership form handling
+            const memberForm = document.getElementById('member-form');
+            memberForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const name = memberForm.querySelector('#member-name').value;
+                const email = memberForm.querySelector('#member-email').value;
+                const cycleDetails = memberForm.querySelector('#cycle-details').value;
+                if (name && email && cycleDetails) {
+                    alert('Membership application submitted! We will contact you with provider details.');
+                    memberForm.reset();
+                } else {
+                    alert('Please fill out all fields.');
+                }
+            });
+        });
+    </script>
+</head>
+<body class="bg-gray-50 text-gray-900 smooth-scroll">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <h1 class="text-2xl font-bold text-indigo-700">TyreTracks</h1>
+                </div>
+                <div class="hidden md:flex items-center space-x-6">
+                    <a href="#home" class="text-gray-700 hover:text-indigo-700 font-medium px-3 py-2 rounded-md">Home</a>
+                    <a href="#rent" class="text-gray-700 hover:text-indigo-700 font-medium px-3 py-2 rounded-md">Rent a Cycle</a>
+                    <a href="#buy" class="text-gray-700 hover:text-indigo-700 font-medium px-3 py-2 rounded-md">Buy Used Cycles</a>
+                    <a href="#join" class="text-gray-700 hover:text-indigo-700 font-medium px-3 py-2 rounded-md">Become a Provider</a>
+                    <a href="#contact" class="text-gray-700 hover:text-indigo-700 font-medium px-3 py-2 rounded-md">Contact</a>
+                </div>
+                <div class="md:hidden">
+                    <button id="mobile-menu-button" class="text-gray-700 hover:text-indigo-700 focus:outline-none">
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                        </svg>
+                    </button>
+ige>
+                <div id="mobile-menu" class="hidden md:hidden bg-white shadow-lg">
+                    <div class="px-4 pt-2 pb-3 space-y-1">
+                        <a href="#home" class="block text-gray-700 hover:text-indigo-700 font-medium px-3 py-2 rounded-md">Home</a>
+                        <a href="#rent" class="block text-gray-700 hover:text-indigo-700 font-medium px-3 py-2 rounded-md">Rent a Cycle</a>
+                        <a href="#buy" class="block text-gray-700 hover:text-indigo-700 font-medium px-3 py-2 rounded-md">Buy Used Cycles</a>
+                        <a href="#join" class="block text-gray-700 hover:text-indigo-700 font-medium px-3 py-2 rounded-md">Become a Provider</a>
+                        <a href="#contact" class="block text-gray-700 hover:text-indigo-700 font-medium px-3 py-2 rounded-md">Contact</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    
+    <section id="home" class="section">
+        <div class="slide active">
+            <img src='header1.png' alt="Road Bike">
+        </div>
+        <div class="slide">
+            <img src='code2.png' alt="Mountain Bike">
+        </div>
+        <div class="slide">
+            <img src='stupid3.png' alt="Hybrid Bike">
+        </div>
+        <div class="text-content active">Rent a Road Bike Today!
+            <a href="#rent" class="inline-block bg-indigo-600 text-white px-8 py-3 rounded-full font-semibold hover:bg-indigo-500 transition">Rent Now</a>
+        </div>
+        <div class="text-content">Explore Mountain Bikes Now!
+            <a href="#rent" class="inline-block bg-indigo-600 text-white px-8 py-3 rounded-full font-semibold hover:bg-indigo-500 transition">Rent Now</a>
+        </div>
+        <div class="text-content">Try a Hybrid Bike Today!
+            <a href="#rent" class="inline-block bg-indigo-600 text-white px-8 py-3 rounded-full font-semibold hover:bg-indigo-500 transition">Rent Now</a>
+        </div>
+        <button>Rent Now</button>
+    </section>
+
+    <!-- Rent a Cycle Section -->
+    <section id="rent" class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-8 text-center">Rent a Cycle</h2>
+            <p class="text-lg text-gray-600 mb-12 text-center">Book a cycle with our timer-based pricing system. Pay only for the time you use!</p>
+            <div class="max-w-lg mx-auto">
+                <form id="booking-form" class="space-y-6">
+                    <select id="cycle-type" class="w-full p-4 rounded-md border border-gray-300 focus:ring-2 focus:ring-indigo-500">
+                        <option value="">Select Cycle Type</option>
+                        <option value="road">Road Bike</option>
+                        <option value="mountain">Mountain Bike</option>
+                        <option value="hybrid">Hybrid Bike</option>
+                    </select>
+                    <input id="start-date" type="datetime-local" class="w-full p-4 rounded-md border border-gray-300 focus:ring-2 focus:ring-indigo-500" required>
+                    <button type="submit" class="w-full bg-indigo-600 text-white px-8 py-4 rounded-full font-semibold hover:bg-indigo-500 transition">Start Rental</button>
+                </form>
+                <div id="timer-display" class="hidden text-center text-lg font-medium mt-4 text-gray-700"></div>
+                <div id="cost-display" class="hidden text-center text-lg font-medium mt-2 text-indigo-700"></div>
+                <button id="stop-timer" class="hidden w-full bg-red-600 text-white px-8 py-4 rounded-full font-semibold hover:bg-red-500 transition mt-4">End Rental</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Buy Used Cycles Section -->
+    <section id="buy" class="py-20 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-8 text-center">Buy Used Cycles</h2>
+            <p class="text-lg text-gray-600 mb-12 text-center">Explore our collection of high-quality used cycles at affordable prices.</p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="bg-white p-8 rounded-lg shadow-md hover-scale">
+                    <div class="w-full h-48 bg-gray-200 rounded-md mb-4"></div>
+                    <h3 class="text-xl font-semibold text-indigo-700 mb-2">Road Bike</h3>
+                    <p class="text-gray-600 mb-4">Excellent condition, lightweight frame, $150</p>
+                    <button class="w-full bg-indigo-600 text-white px-4 py-2 rounded-full hover:bg-indigo-500">Buy Now</button>
+                </div>
+                <div class="bg-white p-8 rounded-lg shadow-md hover-scale">
+                    <div class="w-full h-48 bg-gray-200 rounded-md mb-4"></div>
+                    <h3 class="text-xl font-semibold text-indigo-700 mb-2">Mountain Bike</h3>
+                    <p class="text-gray-600 mb-4">Great for trails, durable, $200</p>
+                    <button class="w-full bg-indigo-600 text-white px-4 py-2 rounded-full hover:bg-indigo-500">Buy Now</button>
+                </div>
+                <div class="bg-white p-8 rounded-lg shadow-md hover-scale">
+                    <div class="w-full h-48 bg-gray-200 rounded-md mb-4"></div>
+                    <h3 class="text-xl font-semibold text-indigo-700 mb-2">Hybrid Bike</h3>
+                    <p class="text-gray-600 mb-4">Versatile and comfortable, $175</p>
+                    <button class="w-full bg-indigo-600 text-white px-4 py-2 rounded-full hover:bg-indigo-500">Buy Now</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Become a Provider Section -->
+    <section id="join" class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-8 text-center">Become a Rental Provider</h2>
+            <p class="text-lg text-gray-600 mb-12 text-center">Join our network and earn by renting out your cycles. Connect with customers and manage rentals easily.</p>
+            <div class="max-w-lg mx-auto">
+                <form id="member-form" class="space-y-6">
+                    <input id="member-name" type="text" placeholder="Your Name" class="w-full p-4 rounded-md border border-gray-300 focus:ring-2 focus:ring-indigo-500" required>
+                    <input id="member-email" type="email" placeholder="Your Email" class="w-full p-4 rounded-md border border-gray-300 focus:ring-2 focus:ring-indigo-500" required>
+                    <textarea id="cycle-details" placeholder="Cycle Details (e.g., type, condition)" rows="4" class="w-full p-4 rounded-md border border-gray-300 focus:ring-2 focus:ring-indigo-500" required></textarea>
+                    <button type="submit" class="w-full bg-indigo-600 text-white px-8 py-4 rounded-full font-semibold hover:bg-indigo-500 transition">Apply Now</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="py-20 bg-indigo-800 text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl md:text-4xl font-bold mb-8 text-center">Contact Us</h2>
+            <p class="text-lg mb-12 text-center max-w-2xl mx-auto">Have questions or need assistance? Reach out to us or connect with our rental providers.</p>
+            <div class="max-w-lg mx-auto">
+                <form id="contact-form" class="space-y-6">
+                    <input id="contact-name" type="text" placeholder="Your Name" class="w-full p-4 rounded-md text-gray-900 focus:ring-2 focus:ring-indigo-500" required>
+                    <input id="contact-email" type="email" placeholder="Your Email" class="w-full p-4 rounded-md text-gray-900 focus:ring-2 focus:ring-indigo-500" required>
+                    <textarea id="contact-message" placeholder="Your Message" rows="5" class="w-full p-4 rounded-md text-gray-900 focus:ring-2 focus:ring-indigo-500" required></textarea>
+                    <button type="submit" class="w-full bg-indigo-600 text-white px-8 py-4 rounded-full font-semibold hover:bg-indigo-500 transition">Send Message</button>
+                </form>
+            </div>
+            <div class="mt-8 text-center">
+                <p class="text-lg">Connect with a rental provider:</p>
+                <p class="text-lg font-medium"> - Tyretracks@gmail.com</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p class="text-gray-400">&copy; 2025 CycleWorks. All rights reserved.</p>
+            <div class="mt-4 flex justify-center space-x-6">
+                <a href="#" class="text-gray-400 hover:text-white">Privacy Policy</a>
+                <a href="#" class="text-gray-400 hover:text-white">Terms of Service</a>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
